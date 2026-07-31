@@ -1,0 +1,64 @@
+#!/bin/sh
+set -e
+echo "[OSLin Binary] Generating boot screen assets..."
+
+BINARY_DIR="binary"
+CHROOT_DIR="chroot"
+
+# Generate splash.png for syslinux
+if [ -f "$CHROOT_DIR/usr/share/wallpapers/oslin-wallpaper.svg" ]; then
+    if command -v rsvg-convert >/dev/null 2>&1; then
+        rsvg-convert -w 800 -h 600 "$CHROOT_DIR/usr/share/wallpapers/oslin-wallpaper.svg" \
+            -o config/bootloaders/syslinux/splash.png 2>/dev/null || true
+    elif command -v convert >/dev/null 2>&1; then
+        convert -resize 800x600 "$CHROOT_DIR/usr/share/wallpapers/oslin-wallpaper.svg" \
+            config/bootloaders/syslinux/splash.png 2>/dev/null || true
+    fi
+fi
+if [ ! -f config/bootloaders/syslinux/splash.png ]; then
+    if command -v convert >/dev/null 2>&1; then
+        convert -size 800x600 xc:'#0A2540' \
+            -gravity center -fill white -pointsize 36 -annotate 0 'OSLin 2026.1 Aurora' \
+            config/bootloaders/syslinux/splash.png 2>/dev/null || true
+    fi
+fi
+
+# Generate background.png for GRUB EFI
+if [ -f "$CHROOT_DIR/usr/share/wallpapers/oslin-wallpaper.svg" ]; then
+    if command -v rsvg-convert >/dev/null 2>&1; then
+        rsvg-convert -w 1920 -h 1080 "$CHROOT_DIR/usr/share/wallpapers/oslin-wallpaper.svg" \
+            -o config/bootloaders/grub-efi/background.png 2>/dev/null || true
+    elif command -v convert >/dev/null 2>&1; then
+        convert -resize 1920x1080 "$CHROOT_DIR/usr/share/wallpapers/oslin-wallpaper.svg" \
+            config/bootloaders/grub-efi/background.png 2>/dev/null || true
+    fi
+fi
+if [ ! -f config/bootloaders/grub-efi/background.png ]; then
+    if command -v convert >/dev/null 2>&1; then
+        convert -size 1920x1080 xc:'#0A2540' \
+            -gravity center -fill white -pointsize 72 -annotate 0 'OSLin' \
+            config/bootloaders/grub-efi/background.png 2>/dev/null || true
+    fi
+fi
+
+# Copy GRUB theme to ISO
+if [ -d "$BINARY_DIR/boot/grub" ]; then
+    mkdir -p "$BINARY_DIR/boot/grub/themes/oslin"
+    cp config/bootloaders/grub-efi/theme.txt "$BINARY_DIR/boot/grub/themes/oslin/" 2>/dev/null || true
+    cp config/bootloaders/grub-efi/background.png "$BINARY_DIR/boot/grub/themes/oslin/" 2>/dev/null || true
+    cp config/bootloaders/grub-efi/theme.txt "$BINARY_DIR/boot/grub/" 2>/dev/null || true
+    cp config/bootloaders/grub-efi/background.png "$BINARY_DIR/boot/grub/" 2>/dev/null || true
+fi
+
+# Fix Plymouth in live initramfs
+echo "[OSLin Binary] Ensuring Plymouth theme is in live initramfs..."
+if [ -d "$CHROOT_DIR/usr/share/plymouth/themes/oslin" ]; then
+    chroot "$CHROOT_DIR" plymouth-set-default-theme oslin 2>/dev/null || true
+    chroot "$CHROOT_DIR" update-initramfs -u -k all 2>/dev/null || {
+        echo "[OSLin Binary] WARNING: initramfs update failed"
+    }
+    echo "[OSLin Binary] Plymouth theme set and initramfs regenerated."
+fi
+
+echo "[OSLin Binary] Boot assets generated."
+exit 0

@@ -417,6 +417,15 @@ cat > "$XFCE_DIR/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml" <<'EOF
 </channel>
 EOF
 
+# ---------- Save reference configs to /etc/oslin/ for first-login script ----------
+# The first-login script copies these to the user's home if XFCE regenerated defaults
+echo "[OSLin] Saving reference XFCE configs to /etc/oslin/..."
+mkdir -p /etc/oslin
+cp "$XFCE_DIR/xfconf/xfce-perchannel-xml/xfce4-panel.xml" /etc/oslin/xfce4-panel.xml 2>/dev/null || true
+cp "$XFCE_DIR/xfconf/xfce-perchannel-xml/xsettings.xml" /etc/oslin/xsettings.xml 2>/dev/null || true
+cp "$XFCE_DIR/xfconf/xfce-perchannel-xml/xfwm4.xml" /etc/oslin/xfwm4.xml 2>/dev/null || true
+cp "$XFCE_DIR/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml" /etc/oslin/xfce4-keyboard-shortcuts.xml 2>/dev/null || true
+
 # ---------- LightDM greeter config (OSLin custom login screen) ----------
 mkdir -p /etc/lightdm
 

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=OSLin First Login Setup
+Comment=Apply custom panel, theme, and start picom compositor
+Exec=/usr/local/bin/oslin-first-login
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+OnlyShowIn=XFCE;
+StartupNotify=false
