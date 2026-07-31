@@ -41,9 +41,8 @@ dosbox
 mednafen
 stella
 
-# --- Steam (optional, lightweight installer) ---
-steam-installer
-steam-libs-amd64
+# --- Steam (install via Flatpak from Flathub; native installer needs i386 multiarch) ---
+# Steam will be available in the App Store (bauh) as a 1-click install.
 
 # --- Game tools ---
 lutris

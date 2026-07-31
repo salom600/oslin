@@ -345,7 +345,31 @@ jobs:
             fi
           fi
 
-          # Pattern 4: Disk space
+          # Pattern 4: Unmet dependencies / held broken packages
+          if grep -qiE 'have unmet dependencies|held broken packages|Unable to correct problems' "$LOG_FILE"; then
+            echo "::warning::Unmet dependencies detected"
+            # Extract the offending package(s) — lines like:
+            #   "pkg : Depends: other (>= X) but it is not installable"
+            BROKEN=$(grep -oE '^[A-Za-z0-9][A-Za-z0-9._+\-]* : Depends:' "$LOG_FILE" 2>/dev/null | sed 's/ : Depends://' | sort -u)
+            if [ -n "$BROKEN" ]; then
+              BROKEN_COUNT=$(echo "$BROKEN" | wc -l)
+              BROKEN_FLAT=$(echo "$BROKEN" | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ //;s/ $//')
+              echo "::warning::Removing packages with broken deps ($BROKEN_COUNT): $BROKEN_FLAT"
+              for pkg in $BROKEN; do
+                [ -z "$pkg" ] && continue
+                echo "Removing package with broken deps: $pkg"
+                sed -i "/^${pkg}$/d; /^${pkg} /d" config/package-lists/*.list.chroot 2>/dev/null || true
+              done
+              if [ "$FIX_APPLIED" = "true" ]; then
+                FIX_DESCRIPTION="${FIX_DESCRIPTION}; Removed ${BROKEN_COUNT} packages with broken deps: ${BROKEN_FLAT}"
+              else
+                FIX_DESCRIPTION="Removed ${BROKEN_COUNT} packages with broken deps: ${BROKEN_FLAT}"
+                FIX_APPLIED="true"
+              fi
+            fi
+          fi
+
+          # Pattern 5: Disk space
           if grep -qiE 'No space left on device|disk full' "$LOG_FILE"; then
             echo "::error::Disk space issue - cannot auto-fix, needs workflow change"
             if [ "$FIX_APPLIED" = "true" ]; then
