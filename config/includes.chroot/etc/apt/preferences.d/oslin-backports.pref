@@ -1,0 +1,11 @@
+Package: *
+Pin: release a=bookworm-backports
+Pin-Priority: 200
+
+Package: linux-image-* linux-headers-*
+Pin: release a=bookworm-backports
+Pin-Priority: 500
+
+Package: nvidia-*
+Pin: release a=bookworm-backports
+Pin-Priority: 500

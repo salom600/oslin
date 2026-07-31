@@ -1,0 +1,16 @@
+[Unit]
+Description=OSLin Hardware Detection & Driver Installer
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=!/etc/oslin/hw-profile
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/oslin-hw-detect
+StandardOutput=journal+console
+StandardError=journal+console
+RemainAfterExit=yes
+TimeoutStartSec=600
+
+[Install]
+WantedBy=multi-user.target

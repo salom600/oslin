@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- OSLin default wallpaper - 1920x1080 abstract gradient -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0A2540"/>
+      <stop offset="30%" stop-color="#1E3A8A"/>
+      <stop offset="60%" stop-color="#0078D4"/>
+      <stop offset="100%" stop-color="#00B4D8"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="60%" r="50%">
+      <stop offset="0%" stop-color="#00D9FF" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#00D9FF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="wave1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#sky)"/>
+  <rect width="1920" height="1080" fill="url(#glow)"/>
+
+  <!-- Abstract waves at bottom -->
+  <path d="M 0 800 Q 480 720 960 800 T 1920 800 L 1920 1080 L 0 1080 Z" fill="url(#wave1)"/>
+  <path d="M 0 880 Q 480 820 960 880 T 1920 880 L 1920 1080 L 0 1080 Z" fill="#FFFFFF" opacity="0.08"/>
+  <path d="M 0 960 Q 480 920 960 960 T 1920 960 L 1920 1080 L 0 1080 Z" fill="#FFFFFF" opacity="0.12"/>
+
+  <!-- OSLin wordmark -->
+  <text x="960" y="540" text-anchor="middle" fill="#FFFFFF"
+        font-family="'Noto Sans', sans-serif" font-size="120" font-weight="200" opacity="0.92">
+    OSLin
+  </text>
+  <text x="960" y="610" text-anchor="middle" fill="#E3F2FD"
+        font-family="'Noto Sans', sans-serif" font-size="32" font-weight="400" opacity="0.7">
+    2026 · Aurora
+  </text>
+</svg>

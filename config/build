@@ -1,0 +1,42 @@
+[Image]
+Type=iso-hybrid
+
+# OSLin - Hybrid Distribution
+# Base: Debian 12 (Bookworm) - stable, broad hardware support
+# Desktop: XFCE 4 heavily customized (Win11/macOS hybrid look)
+# Target: All devices old + new, low resource usage
+Architecture=amd64
+
+# Distribution
+Distribution=bookworm
+
+# APT mirror (default Debian)
+Mirror=http://deb.debian.org/debian/
+
+# Make it a live image
+Encryption=
+Persistence=false
+Persistence-encryption=
+Persistence-label=oslin-persist
+
+# Bootloader
+Bootloader=syslinux
+Bootappend-live=boot=live components username=oslin hostname=oslin locales=en_US.UTF-8,ar_SA.UTF-8 keyboard-layouts=us,ar timezone=Africa/Lagos quiet splash
+
+# ISO volume info
+ISO-Volume="OSLin 2026"
+ISO-Application="OSLin Hybrid Distribution"
+ISO-Publisher="OSLin Project"
+ISO-Preparer="OSLin Build System"
+
+# Snapshot
+Snapshots=false
+
+# Bootstrap
+Bootstrap-Debian-Installer=live
+
+# Win32-loader
+Win32-loader=false
+
+# Source images
+Source=false

@@ -1,0 +1,28 @@
+# OSLin common shell helpers
+
+OSLIN_NAME="OSLin"
+OSLIN_VERSION="2026.1"
+OSLIN_CODENAME="Aurora"
+OSLIN_HOME_URL="https://github.com/salom600/oslin"
+
+# Colors (for terminal output)
+if [ -t 1 ]; then
+    C_RESET='\033[0m'
+    C_RED='\033[0;31m'
+    C_GREEN='\033[0;32m'
+    C_YELLOW='\033[0;33m'
+    C_BLUE='\033[0;34m'
+    C_BOLD='\033[1m'
+else
+    C_RESET=''
+    C_RED=''
+    C_GREEN=''
+    C_YELLOW=''
+    C_BLUE=''
+    C_BOLD=''
+fi
+
+oslin_info()  { printf "${C_BLUE}[OSLin]${C_RESET} %s\n" "$*"; }
+oslin_ok()    { printf "${C_GREEN}[OK]${C_RESET} %s\n" "$*"; }
+oslin_warn()  { printf "${C_YELLOW}[!]${C_RESET} %s\n" "$*"; }
+oslin_err()   { printf "${C_RED}[ERR]${C_RESET} %s\n" "$*" >&2; }

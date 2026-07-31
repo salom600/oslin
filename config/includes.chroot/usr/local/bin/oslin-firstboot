@@ -1,0 +1,20 @@
+#!/bin/bash
+# OSLin First-Boot - runs once at first login
+# - Sets up user-language Flatpak remotes
+# - Generates locale if missing
+# - Creates welcome marker
+set -u
+mkdir -p /etc/oslin
+
+# Add user-level Flathub remote (in case system one failed)
+if command -v flatpak >/dev/null 2>&1; then
+    sudo -u oslin flatpak remote-add --user --if-not-exists flathub \
+        https://flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
+fi
+
+# Ensure PulseAudio is started for the user session
+sudo -u oslin systemctl --user start pulseaudio.socket 2>/dev/null || true
+
+# Mark first-boot complete
+date -u +"%Y-%m-%dT%H:%M:%SZ" > /etc/oslin/.firstboot-done
+exit 0

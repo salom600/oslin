@@ -1,0 +1,301 @@
+#!/bin/sh
+# ============================================
+# OSLin - Hook: 04-xfce-customization.chroot
+# Applies the Win11/macOS hybrid desktop layout
+# Runs inside chroot as the oslin user (via su)
+# ============================================
+set -e
+
+echo "[OSLin] Applying XFCE customization (Win11/macOS hybrid)..."
+
+OSLIN_USER="oslin"
+HOME_DIR="/home/$OSLIN_USER"
+CONFIG_DIR="$HOME_DIR/.config"
+XFCE_DIR="$CONFIG_DIR/xfce4"
+
+mkdir -p "$XFCE_DIR/xfconf/xfce-perchannel-xml"
+mkdir -p "$XFCE_DIR/panel"
+mkdir -p "$XFCE_DIR/xfwm4"
+mkdir -p "$CONFIG_DIR/gtk-3.0"
+mkdir -p "$CONFIG_DIR/gtk-4.0"
+mkdir -p "$CONFIG_DIR/Thunar"
+
+# ---------- XFCE main config (xsettings) ----------
+# Default theme: WhiteSur (macOS). User can switch to Fluent (Win11) via control center.
+cat > "$XFCE_DIR/xfconf/xfce-perchannel-xml/xsettings.xml" <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<channel name="xsettings" version="1.0">
+  <property name="Net" type="empty">
+    <property name="ThemeName" type="string" value="WhiteSur-Light"/>
+    <property name="IconThemeName" type="string" value="WhiteSur"/>
+    <property name="CursorThemeName" type="string" value="WhiteSur-cursors"/>
+    <property name="CursorThemeSize" type="int" value="24"/>
+    <property name="FontName" type="string" value="Noto Sans 11"/>
+    <property name="MonospaceFontName" type="string" value="Hack Nerd Font 11"/>
+    <property name="DoubleClickTime" type="int" value="400"/>
+    <property name="DoubleClickDistance" type="int" value="5"/>
+    <property name="DndDragThreshold" type="int" value="8"/>
+  </property>
+  <property name="Gtk" type="empty">
+    <property name="CanChangeAccels" type="bool" value="false"/>
+    <property name="MenuImages" type="bool" value="true"/>
+    <property name="ButtonImages" type="bool" value="true"/>
+    <property name="ToolbarStyle" type="string" value="icons"/>
+    <property name="ToolbarIconSize" type="string" value="small-toolbar"/>
+    <property name="MenuImages" type="bool" value="true"/>
+    <property name="IMModule" type="string" value="gtk-im-context-simple"/>
+    <property name="KeyThemeName" type="string" value="WhiteSur-Light"/>
+    <property name="CursorBlink" type="bool" value="true"/>
+    <property name="CursorBlinkTime" type="int" value="1200"/>
+    <property name="DecorationLayout" type="string" value="close,minimize,maximize:menu"/>
+    <property name="ShellShowsMenubar" type="bool" value="false"/>
+    <property name="ShellShowsAppmenu" type="bool" value="false"/>
+    <property name="EnableAnimations" type="bool" value="true"/>
+    <property name="ColorScheme" type="string" value="prefer-light"/>
+  </property>
+  <property name="Xft" type="empty">
+    <property name="DPI" type="int" value="96"/>
+    <property name="Antialias" type="int" value="1"/>
+    <property name="Hinting" type="int" value="1"/>
+    <property name="HintStyle" type="string" value="hintslight"/>
+    <property name="RGBA" type="string" value="rgb"/>
+  </property>
+  <property name="Gtk" type="empty">
+    <property name="FontName" type="string" value="Noto Sans 11"/>
+  </property>
+</channel>
+EOF
+
+# ---------- XFWM4 (window manager) config ----------
+# Win11/macOS hybrid: rounded corners, dark title bar, compositing
+cat > "$XFCE_DIR/xfconf/xfce-perchannel-xml/xfwm4.xml" <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<channel name="xfwm4" version="1.0">
+  <property name="general" type="empty">
+    <property name="activate_action" type="string" value="bring"/>
+    <property name="borderless_maximize" type="bool" value="true"/>
+    <property name="box_move" type="bool" value="false"/>
+    <property name="box_resize" type="bool" value="false"/>
+    <property name="button_layout" type="string" value="CHM|"/>
+    <property name="button_offset" type="int" value="0"/>
+    <property name="button_spacing" type="int" value="0"/>
+    <property name="click_to_focus" type="bool" value="true"/>
+    <property name="cycle_apps_only" type="bool" value="false"/>
+    <property name="cycle_draw_frame" type="bool" value="true"/>
+    <property name="cycle_hidden" type="bool" value="true"/>
+    <property name="cycle_minimum" type="bool" value="true"/>
+    <property name="cycle_preview" type="bool" value="true"/>
+    <property name="cycle_tabwin_modal" type="bool" value="true"/>
+    <property name="cycle_workspaces" type="bool" value="false"/>
+    <property name="double_click_action" type="string" value="maximize"/>
+    <property name="focus_delay" type="int" value="250"/>
+    <property name="focus_new" type="bool" value="true"/>
+    <property name="frame_opacity" type="int" value="100"/>
+    <property name="full_width_title" type="bool" value="true"/>
+    <property name="maximize_offset" type="int" value="0"/>
+    <property name="mousewheel_rollup" type="bool" value="true"/>
+    <property name="move_opacity" type="int" value="100"/>
+    <property name="placement_mode" type="string" value="center"/>
+    <property name="placement_ratio" type="int" value="20"/>
+    <property name="popup_opacity" type="int" value="100"/>
+    <property name="prevent_focus_stealing" type="bool" value="false"/>
+    <property name="raise_delay" type="int" value="250"/>
+    <property name="raise_on_click" type="bool" value="true"/>
+    <property name="raise_on_focus" type="bool" value="false"/>
+    <property name="raise_with_any_button" type="bool" value="true"/>
+    <property name="resize_opacity" type="int" value="100"/>
+    <property name="scroll_workspaces" type="bool" value="true"/>
+    <property name="shadow_delta_height" type="int" value="0"/>
+    <property name="shadow_delta_width" type="int" value="0"/>
+    <property name="shadow_delta_x" type="int" value="0"/>
+    <property name="shadow_delta_y" type="int" value="-3"/>
+    <property name="shadow_opacity" type="int" value="50"/>
+    <property name="show_app_icon" type="bool" value="false"/>
+    <property name="show_dock_shadow" type="bool" value="true"/>
+    <property name="show_frame_shadow" type="bool" value="true"/>
+    <property name="show_popup_shadow" type="bool" value="false"/>
+    <property name="snap_resist" type="bool" value="false"/>
+    <property name="snap_to_border" type="bool" value="true"/>
+    <property name="snap_to_windows" type="bool" value="false"/>
+    <property name="snap_width" type="int" value="10"/>
+    <property name="theme" type="string" value="WhiteSur-Light"/>
+    <property name="tile_on_move" type="bool" value="true"/>
+    <property name="title_alignment" type="string" value="center"/>
+    <property name="title_font" type="string" value="Noto Sans Bold 10"/>
+    <property name="title_horizontal_offset" type="int" value="0"/>
+    <property name="title_less_active" type="bool" value="false"/>
+    <property name="title_shadow_active" type="string" value="false"/>
+    <property name="title_shadow_inactive" type="string" value="false"/>
+    <property name="title_vertical_offset_active" type="int" value="0"/>
+    <property name="title_vertical_offset_inactive" type="int" value="0"/>
+    <property name="toggle_workspaces" type="bool" value="false"/>
+    <property name="unredirect_overlays" type="bool" value="true"/>
+    <property name="use_compositing" type="bool" value="true"/>
+    <property name="wrap_cycle" type="bool" value="true"/>
+    <property name="wrap_layout" type="bool" value="true"/>
+    <property name="wrap_resistance" type="bool" value="true"/>
+    <property name="wrap_windows" type="bool" value="true"/>
+    <property name="wrap_workspaces" type="bool" value="false"/>
+    <property name="zoom_desktop" type="bool" value="true"/>
+  </property>
+</channel>
+EOF
+
+# ---------- Panel layout: dock + top bar (macOS/Win11 hybrid) ----------
+cat > "$XFCE_DIR/xfconf/xfce-perchannel-xml/xfce4-panel.xml" <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<channel name="xfce4-panel" version="1.0">
+  <property name="configver" type="int" value="2"/>
+  <property name="panels" type="array">
+    <property name="panel-0" type="string" value="panel-0">
+      <property name="position" type="string" value="p=6;x=0;y=0"/>
+      <property name="length" type="uint" value="100"/>
+      <property name="position-locked" type="bool" value="true"/>
+      <property name="size" type="uint" value="32"/>
+      <property name="plugin-ids" type="array">
+        <property name="plugin-0" type="string" value="whiskermenu"/>
+        <property name="plugin-1" type="string" value="separator"/>
+        <property name="plugin-2" type="string" value="directorymenu"/>
+        <property name="plugin-3" type="string" value="separator"/>
+        <property name="plugin-4" type="string" value="launcher-0"/>
+        <property name="plugin-5" type="string" value="launcher-1"/>
+        <property name="plugin-6" type="string" value="launcher-2"/>
+        <property name="plugin-7" type="string" value="launcher-3"/>
+        <property name="plugin-8" type="string" value="tasklist"/>
+        <property name="plugin-9" type="string" value="separator"/>
+        <property name="plugin-10" type="string" value="systray"/>
+        <property name="plugin-11" type="string" value="pulseaudio"/>
+        <property name="plugin-12" type="string" value="netload"/>
+        <property name="plugin-13" type="string" value="cpugraph"/>
+        <property name="plugin-14" type="string" value="clock"/>
+        <property name="plugin-15" type="string" value="actions"/>
+      </property>
+    </property>
+    <property name="panel-1" type="string" value="panel-1">
+      <property name="position" type="string" value="p=10;x=50;y=0"/>
+      <property name="length" type="uint" value="80"/>
+      <property name="position-locked" type="bool" value="true"/>
+      <property name="size" type="uint" value="52"/>
+      <property name="plugin-ids" type="array">
+        <property name="plugin-0" type="string" value="launcher-10"/>
+        <property name="plugin-1" type="string" value="launcher-11"/>
+        <property name="plugin-2" type="string" value="launcher-12"/>
+        <property name="plugin-3" type="string" value="launcher-13"/>
+        <property name="plugin-4" type="string" value="launcher-14"/>
+        <property name="plugin-5" type="string" value="launcher-15"/>
+        <property name="plugin-6" type="string" value="separator"/>
+        <property name="plugin-7" type="string" value="launcher-16"/>
+      </property>
+    </property>
+  </property>
+  <property name="plugins" type="empty">
+    <property name="plugin-0" type="string" value="whiskermenu">
+      <property name="button-icon" type="string" value="oslin-logo"/>
+      <property name="button-title" type="string" value="Applications"/>
+      <property name="show-button-title" type="bool" value="false"/>
+    </property>
+  </property>
+</channel>
+EOF
+
+# ---------- GTK3 / GTK4 theming ----------
+cat > "$CONFIG_DIR/gtk-3.0/settings.ini" <<'EOF'
+[Settings]
+gtk-theme-name=WhiteSur-Light
+gtk-icon-theme-name=WhiteSur
+gtk-cursor-theme-name=WhiteSur-cursors
+gtk-font-name=Noto Sans 11
+gtk-application-prefer-dark-theme=0
+gtk-decoration-layout=close,minimize,maximize:menu
+gtk-enable-animations=1
+gtk-xft-antialias=1
+gtk-xft-hinting=1
+gtk-xft-hintstyle=hintslight
+gtk-xft-rgba=rgb
+EOF
+
+cp "$CONFIG_DIR/gtk-3.0/settings.ini" "$CONFIG_DIR/gtk-4.0/settings.ini"
+
+# ---------- Mousepad, Thunar dark accents ----------
+mkdir -p "$CONFIG_DIR/Thunar"
+cat > "$CONFIG_DIR/Thunar/thunarrc" <<'EOF'
+[Configuration]
+MiscTitleBarStyle=THUNAR_TITLE_BAR_STYLE_INTEGRATED
+LastView=ThunarIconView
+EOF
+
+# ---------- Keyboard shortcuts (Win11-style) ----------
+cat > "$XFCE_DIR/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml" <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<channel name="xfce4-keyboard-shortcuts" version="1.0">
+  <property name="commands" type="empty">
+    <property name="default" type="empty">
+      <property name="&lt;Alt&gt;F2" type="empty"/>
+      <property name="&lt;Control&gt;&lt;Alt&gt;Delete" type="string" value="xflock4"/>
+      <property name="&lt;Control&gt;&lt;Alt&gt;l" type="string" value="xflock4"/>
+      <property name="&lt;Super&gt;e" type="string" value="thunar"/>
+      <property name="&lt;Super&gt;t" type="string" value="xfce4-terminal"/>
+      <property name="&lt;Super&gt;space" type="string" value="xfce4-appfinder"/>
+      <property name="&lt;Super&gt;d" type="string" value="xfdesktop --menu"/>
+      <property name="&lt;Super&gt;Tab" type="string" value="xfce4-appfinder --collapse"/>
+      <property name="XF86Display" type="string" value="xfdisplay-switch"/>
+      <property name="&lt;Super&gt;v" type="string" value="xfce4-clipman"/>
+      <property name="&lt;Super&gt;s" type="string" value="oslin-store"/>
+      <property name="&lt;Super&gt;i" type="string" value="oslin-control-center"/>
+      <property name="&lt;Super&gt;h" type="string" value="oslin-hw-info"/>
+      <property name="Print" type="string" value="xfce4-screenshooter -f"/>
+      <property name="&lt;Shift&gt;Print" type="string" value="xfce4-screenshooter -r"/>
+      <property name="&lt;Control&gt;Print" type="string" value="xfce4-screenshooter -w"/>
+    </property>
+  </property>
+</channel>
+EOF
+
+# ---------- LightDM greeter config ----------
+mkdir -p /etc/lightdm
+cat > /etc/lightdm/lightdm-gtk-greeter.conf <<'EOF'
+[greeter]
+theme-name = WhiteSur-Light
+icon-theme-name = WhiteSur
+cursor-theme-name = WhiteSur-cursors
+cursor-theme-size = 24
+font-name = Noto Sans 12
+background = /usr/share/wallpapers/oslin/wallpaper-default.png
+user-background = false
+show-clock = true
+clock-format = %a, %b %d  %H:%M
+show-language-selector = true
+show-session-selector = true
+show-power = true
+EOF
+
+# ---------- File associations: sensible defaults ----------
+mkdir -p /etc/skel/.config
+cat > /etc/skel/.config/mimeapps.list <<'EOF'
+[Default Applications]
+text/plain=mousepad.desktop
+text/html=firefox-esr.desktop
+x-scheme-handler/http=firefox-esr.desktop
+x-scheme-handler/https=firefox-esr.desktop
+x-scheme-handler/ftp=firefox-esr.desktop
+application/pdf=org.gnome.Evince.desktop
+image/png=ristretto.desktop
+image/jpeg=ristretto.desktop
+video/mp4=mpv.desktop
+audio/mpeg=mpv.desktop
+application/x-tar=file-roller.desktop
+application/zip=file-roller.desktop
+application/x-7z-compressed=file-roller.desktop
+EOF
+
+# ---------- Background wallpaper ----------
+# Try to copy a pre-bundled one from includes
+if [ -f /usr/share/oslin/wallpaper-default.png ]; then
+    cp /usr/share/oslin/wallpaper-default.png /usr/share/wallpapers/oslin/
+fi
+
+# ---------- Permissions ----------
+chown -R "$OSLIN_USER":"$OSLIN_USER" "$HOME_DIR"
+
+echo "[OSLin] XFCE customization applied."
+exit 0

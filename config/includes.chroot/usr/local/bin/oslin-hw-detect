@@ -1,0 +1,159 @@
+#!/bin/bash
+# ============================================
+# OSLin - Hardware Detection & Driver Installer
+# Detects Nvidia / Intel / AMD GPUs and components
+# Auto-installs the best available open driver
+# Safe to run repeatedly
+# ============================================
+set -u
+
+LOG=/var/log/oslin-hw-detect.log
+mkdir -p "$(dirname "$LOG")"
+exec > >(tee -a "$LOG") 2>&1
+
+echo "=========================================="
+echo " OSLin Hardware Detection"
+echo " $(date)"
+echo "=========================================="
+
+# Source OSLin helpers
+. /etc/oslin/oslin-common 2>/dev/null || true
+
+# ---------- Detect GPU ----------
+detect_gpu() {
+    local gpu_vendor="unknown"
+    local gpu_model="unknown"
+    local gpu_pci=""
+
+    # Get all VGA / 3D / Display controllers
+    while IFS= read -r line; do
+        gpu_pci+="$line"$'\n'
+    done < <(lspci -nn | grep -iE 'VGA|3D|Display')
+
+    if echo "$gpu_pci" | grep -qi 'nvidia'; then
+        gpu_vendor="nvidia"
+        gpu_model=$(echo "$gpu_pci" | grep -i 'nvidia' | head -1 | sed 's/.*:\s*//')
+    elif echo "$gpu_pci" | grep -qi 'advanced micro devices\|amd\|ati\b\|radeon'; then
+        gpu_vendor="amd"
+        gpu_model=$(echo "$gpu_pci" | grep -iE 'amd|ati|radeon' | head -1 | sed 's/.*:\s*//')
+    elif echo "$gpu_pci" | grep -qi 'intel'; then
+        gpu_vendor="intel"
+        gpu_model=$(echo "$gpu_pci" | grep -i 'intel' | head -1 | sed 's/.*:\s*//')
+    fi
+
+    echo "$gpu_vendor"
+    echo "Detected GPU vendor: $gpu_vendor"
+    echo "Detected GPU model:  $gpu_model"
+    echo "$gpu_vendor" > /etc/oslin/hw-gpu-vendor
+    echo "$gpu_model"  > /etc/oslin/hw-gpu-model
+}
+
+# ---------- Install drivers per vendor ----------
+install_nvidia() {
+    echo "[OSLin] Installing NVIDIA drivers..."
+    # Use nvidia-driver from non-free. Default to the latest supported by kernel.
+    apt-get update -qq
+    apt-get install -y --no-install-recommends \
+        nvidia-driver \
+        nvidia-kernel-dkms \
+        nvidia-smi \
+        nvidia-settings \
+        nvidia-vdpau-driver \
+        libnvidia-cfg1 \
+        libnvidia-encode1 \
+        libnvidia-gl1 \
+        nvidia-cuda-toolkit \
+        2>&1 | tail -5
+    # Blacklist nouveau
+    cat > /etc/modprobe.d/blacklist-nouveau.conf <<'EOF'
+blacklist nouveau
+options nouveau modeset=0
+EOF
+    update-initramfs -u 2>&1 | tail -3
+}
+
+install_amd() {
+    echo "[OSLin] Installing AMD drivers..."
+    apt-get update -qq
+    # amdgpu is in main kernel; firmware-amd-graphics pulls latest microcode
+    apt-get install -y --no-install-recommends \
+        firmware-amd-graphics \
+        mesa-va-drivers \
+        mesa-vdpau-drivers \
+        mesa-vulkan-drivers \
+        libglx-mesa0 \
+        libgl1-mesa-dri \
+        vulkan-tools \
+        rocm-opencl \
+        rocm-smi \
+        2>&1 | tail -5
+}
+
+install_intel() {
+    echo "[OSLin] Installing Intel drivers..."
+    apt-get update -qq
+    apt-get install -y --no-install-recommends \
+        firmware-misc-nonfree \
+        intel-media-va-driver \
+        intel-media-va-driver-non-free \
+        mesa-va-drivers \
+        mesa-vulkan-drivers \
+        libgl1-mesa-dri \
+        vulkan-tools \
+        intel-gpu-tools \
+        2>&1 | tail -5
+}
+
+# ---------- Detect CPU vendor (for microcode) ----------
+detect_cpu() {
+    local cpu_vendor
+    cpu_vendor=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}')
+    echo "Detected CPU vendor: $cpu_vendor"
+    echo "$cpu_vendor" > /etc/oslin/hw-cpu-vendor
+}
+
+# ---------- Detect audio ----------
+detect_audio() {
+    lspci | grep -i 'audio' | head -3
+}
+
+# ---------- Detect network ----------
+detect_network() {
+    lspci | grep -iE 'ethernet|network' | head -5
+}
+
+# ---------- Main ----------
+mkdir -p /etc/oslin
+
+detect_cpu
+detect_gpu
+GPU_VENDOR=$(cat /etc/oslin/hw-gpu-vendor 2>/dev/null || echo "unknown")
+detect_audio
+detect_network
+
+case "$GPU_VENDOR" in
+    nvidia) install_nvidia ;;
+    amd)    install_amd    ;;
+    intel)  install_intel  ;;
+    *)
+        echo "[OSLin] Unknown GPU vendor, installing generic Mesa stack..."
+        apt-get update -qq
+        apt-get install -y --no-install-recommends \
+            mesa-va-drivers mesa-vulkan-drivers libgl1-mesa-dri 2>&1 | tail -3
+        ;;
+esac
+
+# ---------- Persist a hardware profile ----------
+cat > /etc/oslin/hw-profile <<EOF
+# OSLin Hardware Profile - auto-generated
+GENERATED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+CPU_VENDOR=$(cat /etc/oslin/hw-cpu-vendor 2>/dev/null)
+GPU_VENDOR=$GPU_VENDOR
+GPU_MODEL=$(cat /etc/oslin/hw-gpu-model 2>/dev/null)
+KERNEL=$(uname -r)
+MEMORY_KB=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+EOF
+
+echo "[OSLin] Hardware detection complete."
+echo "=========================================="
+exit 0

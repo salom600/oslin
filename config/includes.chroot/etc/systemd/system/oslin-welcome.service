@@ -1,0 +1,14 @@
+[Unit]
+Description=OSLin Welcome Screen
+After=graphical.target
+ConditionPathExists=!/etc/oslin/.welcome-shown
+
+[Service]
+Type=oneshot
+User=oslin
+Environment=DISPLAY=:0
+ExecStart=/usr/local/bin/oslin-welcome-gui
+RemainAfterExit=yes
+
+[Install]
+WantedBy=graphical.target

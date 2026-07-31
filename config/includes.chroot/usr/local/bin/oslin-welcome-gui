@@ -1,0 +1,34 @@
+#!/bin/bash
+# OSLin Welcome GUI - shown on first login
+# Powered by zenity
+set -u
+
+# Wait for the desktop to come up
+for i in $(seq 1 30); do
+    if [ -n "${DISPLAY:-}" ]; then break; fi
+    sleep 1
+done
+
+if ! command -v zenity >/dev/null 2>&1; then
+    exit 0
+fi
+
+zenity --info --title="Welcome to OSLin" --no-wrap \
+    --text="<span size='x-large' weight='bold'>Welcome to OSLin 2026.1 Aurora</span>
+
+Your sleek, lightweight, modern Linux that brings the best of Windows 11 and macOS — without the bloat.
+
+Getting started:
+• Click the OSLin logo (top-left) for apps
+• Press Super+S to open the App Store
+• Press Super+I to open the Control Center
+• Press Super+T for a terminal
+
+Hardware drivers (Nvidia / Intel / AMD) are auto-installed on first boot.
+
+Enjoy! 🎉" 2>/dev/null
+
+# Mark welcome shown
+mkdir -p /etc/oslin
+date -u +"%Y-%m-%dT%H:%M:%SZ" > /etc/oslin/.welcome-shown
+exit 0

@@ -1,0 +1,86 @@
+#!/bin/sh
+# ============================================
+# OSLin - Hook: 01-setup-user.chroot
+# Creates the default 'oslin' user, sudoers, and home skeleton
+# Runs INSIDE the chroot during build
+# ============================================
+set -e
+
+echo "[OSLin] Setting up default user 'oslin'..."
+
+# Create the oslin user with password 'oslin' (auto-login)
+# Users can change it after install
+if ! id oslin >/dev/null 2>&1; then
+    useradd -m -s /bin/bash -G sudo,adm,cdrom,audio,video,plugdev,netdev,bluetooth,lpadmin,scanner oslin
+    echo "oslin:oslin" | chpasswd
+fi
+
+# Enable passwordless sudo for oslin (during live session)
+echo "oslin ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/oslin
+chmod 0440 /etc/sudoers.d/oslin
+
+# Set root password (locked by default, can be unlocked by user)
+passwd -l root || true
+
+# Hostname
+echo "oslin" > /etc/hostname
+
+# Hosts file
+cat > /etc/hosts <<'EOF'
+127.0.0.1       localhost oslin
+127.0.1.1       oslin
+::1             localhost ip6-localhost ip6-loopback
+ff02::1         ip6-allnodes
+ff02::2         ip6-allrouters
+EOF
+
+# Make /etc/os-release carry OSLin branding
+cat > /etc/os-release <<'EOF'
+NAME="OSLin"
+VERSION="2026.1 (Aurora)"
+ID=oslin
+ID_LIKE=debian
+VERSION_CODENAME=aurora
+PRETTY_NAME="OSLin 2026.1 Aurora"
+ANSI_COLOR="1;34"
+HOME_URL="https://github.com/salom600/oslin"
+SUPPORT_URL="https://github.com/salom600/oslin/issues"
+BUG_REPORT_URL="https://github.com/salom600/oslin/issues"
+BUILD_ID="2026.01"
+EOF
+
+# Copy skeleton into oslin home
+if [ -d /etc/skel ]; then
+    cp -r /etc/skel/. /home/oslin/
+    chown -R oslin:oslin /home/oslin
+fi
+
+# Disable SSH autostart (security for live session)
+systemctl disable ssh.service 2>/dev/null || true
+systemctl disable ssh.socket 2>/dev/null || true
+
+# Enable essential services
+systemctl enable NetworkManager.service 2>/dev/null || true
+systemctl enable lightdm.service 2>/dev/null || true
+systemctl enable bluetooth.service 2>/dev/null || true
+systemctl enable cups.service 2>/dev/null || true
+systemctl enable flatpak-system-helper.service 2>/dev/null || true
+systemctl enable oslin-hw-detect.service 2>/dev/null || true
+systemctl enable oslin-welcome.service 2>/dev/null || true
+systemctl enable oslin-firstboot.service 2>/dev/null || true
+
+# Set default locale
+echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
+echo "ar_SA.UTF-8 UTF-8" >> /etc/locale.gen
+locale-gen
+
+echo "LANG=en_US.UTF-8" > /etc/default/locale
+echo "LC_MESSAGES=en_US.UTF-8" >> /etc/default/locale
+echo "LC_TIME=en_US.UTF-8" >> /etc/default/locale
+
+# Set timezone
+ln -sf /usr/share/zoneinfo/Africa/Lagos /etc/localtime
+echo "Africa/Lagos" > /etc/timezone
+
+echo "[OSLin] User setup complete."
+exit 0

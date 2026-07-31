@@ -1,0 +1,108 @@
+#!/bin/sh
+# ============================================
+# OSLin - Hook: 02-install-themes.chroot
+# Installs Windows 11 (Fluent) + macOS (WhiteSur) themes
+# Runs INSIDE chroot during build
+# ============================================
+set -e
+
+echo "[OSLin] Installing themes (Fluent + WhiteSur)..."
+
+THEMES_DIR="/usr/share/themes"
+ICONS_DIR="/usr/share/icons"
+TMP_DIR="/tmp/oslin-themes"
+mkdir -p "$TMP_DIR"
+cd "$TMP_DIR"
+
+# ---------- Fluent (Windows 11) GTK theme ----------
+if [ ! -d "$THEMES_DIR/Fluent" ]; then
+    echo "[OSLin] Downloading Fluent (Win11) GTK theme..."
+    git clone --depth=1 https://github.com/vinceliuice/Fluent-gtk-theme.git fluent-gtk 2>/dev/null || {
+        echo "[OSLin] WARNING: Fluent-gtk clone failed, skipping"
+    }
+    if [ -d "fluent-gtk" ]; then
+        cd fluent-gtk
+        chmod +x install.sh
+        ./install.sh -t all -s standard --tweaks round solid -d "$THEMES_DIR" 2>/dev/null || true
+        cd ..
+    fi
+fi
+
+# ---------- WhiteSur (macOS) GTK theme ----------
+if [ ! -d "$THEMES_DIR/WhiteSur" ]; then
+    echo "[OSLin] Downloading WhiteSur (macOS) GTK theme..."
+    git clone --depth=1 https://github.com/vinceliuice/WhiteSur-gtk-theme.git whitesur-gtk 2>/dev/null || {
+        echo "[OSLin] WARNING: WhiteSur-gtk clone failed, skipping"
+    }
+    if [ -d "whitesur-gtk" ]; then
+        cd whitesur-gtk
+        chmod +x install.sh
+        ./install.sh -t all -s standard --tweaks round solid -d "$THEMES_DIR" 2>/dev/null || true
+        cd ..
+    fi
+fi
+
+# ---------- Fluent icon theme ----------
+if [ ! -d "$ICONS_DIR/Fluent" ]; then
+    echo "[OSLin] Downloading Fluent icons..."
+    git clone --depth=1 https://github.com/vinceliuice/Fluent-icon-theme.git fluent-icons 2>/dev/null || true
+    if [ -d "fluent-icons" ]; then
+        cd fluent-icons
+        chmod +x install.sh
+        ./install.sh -d "$ICONS_DIR" 2>/dev/null || true
+        cd ..
+    fi
+fi
+
+# ---------- WhiteSur icon theme ----------
+if [ ! -d "$ICONS_DIR/WhiteSur" ]; then
+    echo "[OSLin] Downloading WhiteSur icons..."
+    git clone --depth=1 https://github.com/vinceliuice/WhiteSur-icon-theme.git whitesur-icons 2>/dev/null || true
+    if [ -d "whitesur-icons" ]; then
+        cd whitesur-icons
+        chmod +x install.sh
+        ./install.sh -d "$ICONS_DIR" 2>/dev/null || true
+        cd ..
+    fi
+fi
+
+# ---------- Colloid (alternative icon pack) ----------
+if [ ! -d "$ICONS_DIR/Colloid" ]; then
+    git clone --depth=1 https://github.com/vinceliuice/Colloid-icon-theme.git colloid-icons 2>/dev/null || true
+    if [ -d "colloid-icons" ]; then
+        cd colloid-icons
+        chmod +x install.sh
+        ./install.sh -d "$ICONS_DIR" 2>/dev/null || true
+        cd ..
+    fi
+fi
+
+# ---------- Cursors ----------
+if [ ! -d "$ICONS_DIR/WhiteSur-cursors" ]; then
+    git clone --depth=1 https://github.com/vinceliuice/WhiteSur-cursors.git whitesur-cursors 2>/dev/null || true
+    if [ -d "whitesur-cursors" ]; then
+        cd whitesur-cursors
+        chmod +x install.sh
+        ./install.sh -d "$ICONS_DIR" 2>/dev/null || true
+        cd ..
+    fi
+fi
+
+# ---------- Backgrounds ----------
+mkdir -p /usr/share/wallpapers/oslin
+# We will populate this from includes.chroot later (no network needed at runtime)
+
+# ---------- Fonts ----------
+mkdir -p /usr/share/fonts/truetype/oslin
+# Copy any custom TTFs from includes
+if [ -d /usr/share/oslin/fonts ]; then
+    cp -r /usr/share/oslin/fonts/* /usr/share/fonts/truetype/oslin/ 2>/dev/null || true
+fi
+fc-cache -f
+
+# Clean up
+cd /
+rm -rf "$TMP_DIR"
+
+echo "[OSLin] Themes installed."
+exit 0

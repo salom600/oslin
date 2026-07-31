@@ -1,0 +1,45 @@
+# Build artifacts
+.build/
+out/
+*.iso
+*.iso.sha256
+build.log
+chroot/
+binary/
+.build/
+config/cache/
+config/.stage/
+
+# live-build local state
+binary.list
+chroot.list
+*.packages
+*.sources
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Secrets - NEVER commit these
+.env
+.env.local
+*.pem
+*.key
+secrets/
+token.txt
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Misc
+.cache/
+*.log

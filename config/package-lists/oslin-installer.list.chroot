@@ -1,0 +1,16 @@
+# ============================================
+# OSLin - Installer package list (Calamares)
+# ============================================
+# Calamares is a universal graphical installer used by many distros.
+# It's the recommended installer for OSLin.
+
+calamares
+calamares-settings-debian
+qml-module-qtquick2
+qml-module-qtquick-controls
+qml-module-qtquick-layouts
+qml-module-qtquick-window2
+qml-module-qtquick-shapes
+qml-module-qtgraphicaleffects
+qml-module-qtquick-templates2
+qml-module-qtquick-controls2

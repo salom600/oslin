@@ -1,0 +1,109 @@
+#!/bin/bash
+# ============================================
+# OSLin Control Center - GUI for one-click system tweaks
+# Launches a zenity-based control panel
+# ============================================
+set -u
+
+# Check if we have zenity
+if ! command -v zenity >/dev/null 2>&1; then
+    echo "zenity not installed. Run: sudo apt install zenity"
+    exit 1
+fi
+
+# Function: change theme
+change_theme() {
+    local choice
+    choice=$(zenity --list --title="OSLin Theme" --text="Choose your theme:" \
+        --column="Theme" --column="Style" \
+        "WhiteSur-Light" "macOS Big Sur (Light)" \
+        "WhiteSur-Dark" "macOS Big Sur (Dark)" \
+        "Fluent-Light" "Windows 11 (Light)" \
+        "Fluent-Dark" "Windows 11 (Dark)" \
+        --height=320 --width=480 2>/dev/null)
+    [ -z "$choice" ] && return 0
+
+    xfconf-query -c xsettings -p /Net/ThemeName -s "$choice" 2>/dev/null
+    xfconf-query -c xfwm4 -p /general/theme -s "$choice" 2>/dev/null
+
+    # Icons follow the theme
+    local icon_theme
+    case "$choice" in
+        WhiteSur*) icon_theme="WhiteSur" ;;
+        Fluent*)   icon_theme="Fluent" ;;
+        *)         icon_theme="Papirus" ;;
+    esac
+    xfconf-query -c xsettings -p /Net/IconThemeName -s "$icon_theme" 2>/dev/null
+
+    zenity --info --title="OSLin" --text="Theme applied: $choice" --timeout=2 2>/dev/null
+}
+
+# Function: change wallpaper
+change_wallpaper() {
+    local wallpaper
+    wallpaper=$(zenity --file-selection --title="Choose wallpaper" \
+        --file-filter="Images | *.png *.jpg *.jpeg *.webp" 2>/dev/null) || return 0
+    [ -z "$wallpaper" ] && return 0
+    xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s "$wallpaper" 2>/dev/null
+    # Update all monitors
+    for prop in $(xfconf-query -c xfce4-desktop -l | grep 'image-path$'); do
+        xfconf-query -c xfce4-desktop -p "$prop" -s "$wallpaper" 2>/dev/null
+    done
+}
+
+# Function: open store
+open_store() {
+    nohup /usr/local/bin/oslin-store >/dev/null 2>&1 &
+}
+
+# Function: hardware info
+show_hw_info() {
+    local info
+    info=$(inxi -Fxz 2>/dev/null || (lscpu; echo; lspci; echo; free -h))
+    zenity --text-info --title="OSLin Hardware Information" \
+        --filename=<(echo "$info") --width=680 --height=560 2>/dev/null
+}
+
+# Function: switch keyboard layout
+switch_keyboard() {
+    local layout
+    layout=$(zenity --list --title="Keyboard Layout" \
+        --column="Layout" --column="Description" \
+        "us" "English (US)" \
+        "ar" "Arabic" \
+        "fr" "French" \
+        "es" "Spanish" \
+        "de" "German" \
+        "tr" "Turkish" \
+        --height=320 --width=400 2>/dev/null) || return 0
+    [ -z "$layout" ] && return 0
+    setxkbmap -layout "$layout"
+}
+
+# Main menu
+main() {
+    local choice
+    choice=$(zenity --list --title="OSLin Control Center" \
+        --text="What do you want to do?" \
+        --column="Action" --column="Description" \
+        "theme" "Change theme (Win11 / macOS)" \
+        "wallpaper" "Change wallpaper" \
+        "store" "Open app store" \
+        "hardware" "Show hardware information" \
+        "keyboard" "Switch keyboard layout" \
+        "update" "Update the system" \
+        --height=380 --width=480 2>/dev/null) || exit 0
+
+    case "$choice" in
+        theme)     change_theme ;;
+        wallpaper) change_wallpaper ;;
+        store)     open_store ;;
+        hardware)  show_hw_info ;;
+        keyboard)  switch_keyboard ;;
+        update)    zenity --question --title="Update" --text="Run a full system update?" 2>/dev/null \
+                   && xfce4-terminal -e "sudo apt update && sudo apt upgrade -y" ;;
+    esac
+}
+
+main "$@"
+exit 0

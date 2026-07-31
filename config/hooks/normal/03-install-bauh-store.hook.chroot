@@ -1,0 +1,66 @@
+#!/bin/sh
+# ============================================
+# OSLin - Hook: 03-install-bauh-store.chroot
+# Installs bauh (universal app store: Flatpak/AppImage/Snap/Web)
+# ============================================
+set -e
+
+echo "[OSLin] Installing bauh universal app store..."
+
+# Create venv for bauh (avoids system Python pollution)
+python3 -m venv /opt/bauh-env
+/opt/bauh-env/bin/pip install --upgrade pip
+/opt/bauh-env/bin/pip install bauh
+
+# Create launcher
+cat > /usr/local/bin/oslin-store <<'EOF'
+#!/bin/bash
+# Launch the OSLin App Store (powered by bauh)
+exec /opt/bauh-env/bin/bauh "$@"
+EOF
+chmod +x /usr/local/bin/oslin-store
+
+# Desktop entry
+cat > /usr/share/applications/oslin-store.desktop <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=OSLin Store
+Name[ar]=متجر OSLin
+Comment=Install apps, games, and tools in one click
+Comment[ar]=ثبّت التطبيقات والألعاب والأدوات بنقرة واحدة
+Exec=/usr/local/bin/oslin-store
+Icon=oslin-store
+Terminal=false
+Categories=System;PackageManager;Settings;
+Keywords=store;apps;install;flatpak;snap;appimage;
+StartupNotify=true
+EOF
+
+# Add a simple icon (text-based SVG fallback if no network)
+mkdir -p /usr/share/icons/hicolor/scalable/apps
+cat > /usr/share/icons/hicolor/scalable/apps/oslin-store.svg <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0078D4"/>
+      <stop offset="100%" stop-color="#005A9E"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#g)"/>
+  <path d="M64 36 L88 60 L76 60 L76 92 L52 92 L52 60 L40 60 Z" fill="white"/>
+  <text x="64" y="116" text-anchor="middle" fill="white" font-size="14" font-family="sans-serif" font-weight="bold">Store</text>
+</svg>
+EOF
+
+# Configure Flatpak remotes (user-level, so they work in live session)
+mkdir -p /var/lib/flatpak
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
+
+# Pre-install a few core Flatpaks (the store will be ready to use immediately)
+echo "[OSLin] Pre-installing core Flatpak apps (Discord, Spotify)..."
+flatpak install -y --system flathub com.discordapp.Discord 2>/dev/null || true
+flatpak install -y --system flathub com.spotify.Client 2>/dev/null || true
+
+echo "[OSLin] bauh store installed."
+exit 0

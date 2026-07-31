@@ -1,0 +1,79 @@
+#!/bin/sh
+# ============================================
+# OSLin - Hook: 06-final-polish.chroot
+# Final cleanups: remove apt cache, strip locales, set permissions
+# ============================================
+set -e
+
+echo "[OSLin] Final polish..."
+
+# Clean apt cache to reduce ISO size
+apt-get clean
+rm -rf /var/lib/apt/lists/*
+rm -rf /var/cache/apt/archives/*.deb
+
+# Remove unnecessary docs (keep man pages)
+rm -rf /usr/share/doc/*/README*
+rm -rf /usr/share/doc/*/examples
+find /usr/share/doc -type f -name 'changelog*' -delete 2>/dev/null || true
+find /usr/share/doc -type f -name 'NEWS*' -delete 2>/dev/null || true
+find /usr/share/doc -type f -name 'TODO*' -delete 2>/dev/null || true
+
+# Remove i18n locales we don't ship (keep en, ar)
+if [ -d /usr/share/locale ]; then
+    find /usr/share/locale -type f \
+        ! -path '*/en/*' \
+        ! -path '*/ar/*' \
+        ! -path '*/locale.alias' \
+        -delete 2>/dev/null || true
+    # Remove empty dirs
+    find /usr/share/locale -type d -empty -delete 2>/dev/null || true
+fi
+
+# Remove man pages in non-English languages
+if [ -d /usr/share/man ]; then
+    find /usr/share/man -type d \
+        ! -path '*/man1*' ! -path '*/man2*' ! -path '*/man3*' \
+        ! -path '*/man4*' ! -path '*/man5*' ! -path '*/man6*' \
+        ! -path '*/man7*' ! -path '*/man8*' ! -path '*/man9*' \
+        -mindepth 1 -maxdepth 1 -type d \
+        ! -name 'man*' \
+        -exec rm -rf {} + 2>/dev/null || true
+fi
+
+# Clean up tmp
+rm -rf /tmp/*
+rm -rf /var/tmp/*
+
+# Remove backup files
+find / -type f -name '*~' -delete 2>/dev/null || true
+find / -type f -name '*.bak' -delete 2>/dev/null || true
+
+# Ensure all OSLin scripts are executable
+chmod +x /usr/local/bin/oslin-* 2>/dev/null || true
+
+# Ensure hooks directory is clean in final image
+rm -rf /usr/share/live-build
+
+# Truncate logs
+find /var/log -type f -exec truncate -s 0 {} \; 2>/dev/null || true
+
+# Set default umask
+echo "umask 022" >> /etc/profile
+
+# Disable Apache-style services we don't need on a desktop
+systemctl disable apache2 2>/dev/null || true
+systemctl disable nginx 2>/dev/null || true
+systemctl disable mysql 2>/dev/null || true
+systemctl disable postgresql 2>/dev/null || true
+
+# Make sure the oslin user owns their home
+chown -R oslin:oslin /home/oslin 2>/dev/null || true
+
+# Final machine-id
+echo "" > /etc/machine-id
+rm -f /var/lib/dbus/machine-id 2>/dev/null || true
+ln -s /etc/machine-id /var/lib/dbus/machine-id 2>/dev/null || true
+
+echo "[OSLin] Final polish complete."
+exit 0

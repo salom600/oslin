@@ -1,0 +1,20 @@
+# Common configuration for OSLin
+# Applied to both binary and chroot stages
+
+LB_BOOTSTRAP_INCLUDES="apt apt-transport-https ca-certificates"
+LB_ARCHITECTURES="amd64"
+LB_DISTRIBUTION="bookworm"
+LB_APT_INDICES="true"
+LB_APT_SOURCE_ARCHIVES="true"
+LB_ARCHIVE_AREAS="main contrib non-free non-free-firmware"
+LB_KEYRING_PACKAGES="debian-archive-keyring"
+LB_CACHE="true"
+LB_CACHE_INDICES="true"
+LB_CACHE_PACKAGES="true"
+LB_CACHE_STAGES="bootstrap rootfs"
+LB_DEBOOTSTRAP="debootstrap"
+LB_DEBOOTSTRAP_SCRIPT=""
+LB_BOOTSTRAP_FLAVOUR="minbase"
+LB_COMPRESSION="xz"
+LB_CHROOT_FILESYSTEM="squashfs"
+LB_DEBUG=""

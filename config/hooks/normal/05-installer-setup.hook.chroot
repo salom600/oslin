@@ -1,0 +1,98 @@
+#!/bin/sh
+# ============================================
+# OSLin - Hook: 05-installer-setup.chroot
+# Configures Calamares for OSLin branding
+# ============================================
+set -e
+
+echo "[OSLin] Configuring Calamares installer..."
+
+# Ensure calamares desktop entry is in the live user's autostart
+mkdir -p /etc/skel/Desktop
+mkdir -p /etc/skel/.config/autostart
+
+# Desktop shortcut for "Install OSLin"
+cat > /etc/skel/Desktop/install-oslin.desktop <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=Install OSLin
+Name[ar]=تثبيت OSLin
+Comment=Install OSLin to your hard drive
+Comment[ar]=ثبّت OSLin على قرصك الصلب
+Exec=sudo calamares
+Icon=calamares
+Terminal=false
+Categories=System;
+StartupNotify=true
+EOF
+chmod +x /etc/skel/Desktop/install-oslin.desktop
+
+# OSLin branding for calamares (if calamares is installed)
+if [ -d /etc/calamares ]; then
+    mkdir -p /etc/calamares/branding/oslin
+
+    # Branding descriptor
+    cat > /etc/calamares/branding/oslin/branding.desc <<'EOF'
+---
+componentName: oslin
+welcomeStyleCalamares: false
+string:
+    productName:         OSLin
+    shortProductName:    OSLin
+    version:             2026.1
+    shortVersion:        2026.1
+    codename:            Aurora
+    productUrl:          https://github.com/salom600/oslin
+    supportUrl:          https://github.com/salom600/oslin/issues
+    knownIssuesUrl:      https://github.com/salom600/oslin/issues
+    releaseNotesUrl:     https://github.com/salom600/oslin/releases
+images:
+    productLogo:         "/usr/share/icons/hicolor/scalable/apps/oslin-logo.svg"
+    productWallpaper:    "/usr/share/wallpapers/oslin-wallpaper.svg"
+    productWelcome:      "/usr/share/icons/hicolor/scalable/apps/oslin-logo.svg"
+slideshow:               "1.0"
+style:
+   SidebarBackground:    "#0A2540"
+   SidebarText:          "#FFFFFF"
+   SidebarTextSelect:    "#00B4D8"
+EOF
+
+    # Slideshow (simple)
+    cat > /etc/calamares/branding/oslin/show.qml <<'EOF'
+import QtQuick 2.0;
+
+Rectangle {
+    id: root
+    color: "#0A2540"
+    property var images: []
+    property var strings: [
+        "Welcome to OSLin",
+        "Lightweight, Modern, Yours",
+        "Windows 11 / macOS Hybrid Look",
+        "Auto Hardware Detection",
+        "One-Click App Store",
+        "Installing..."
+    ]
+    Text {
+        anchors.centerIn: parent
+        text: strings[index % strings.length]
+        color: "white"
+        font.pixelSize: 36
+        font.weight: Font.Light
+    }
+    Timer {
+        interval: 2000
+        running: true
+        repeat: true
+        onTriggered: parent.index = (parent.index || 0) + 1
+    }
+}
+EOF
+fi
+
+# Set up live session user password for sudo (calamares needs it)
+echo "oslin ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/99-oslin-live
+chmod 0440 /etc/sudoers.d/99-oslin-live
+
+echo "[OSLin] Calamares configured."
+exit 0

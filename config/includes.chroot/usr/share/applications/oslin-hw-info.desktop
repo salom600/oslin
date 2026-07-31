@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Hardware Info
+Name[ar]=معلومات الجهاز
+Comment=Show detailed hardware information
+Comment[ar]=اعرض معلومات تفصيلية عن الجهاز
+Exec=/usr/local/bin/oslin-hw-info
+Icon=hardware-info
+Terminal=true
+Categories=System;Utility;
+Keywords=hardware;info;gpu;cpu;

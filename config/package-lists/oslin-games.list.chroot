@@ -1,0 +1,64 @@
+# ============================================
+# OSLin - Games (pre-installed, lightweight selection)
+# ============================================
+
+# --- Native Linux games ---
+0ad
+aisleriot
+battle-tanks
+bloodwet
+bsdgames
+bzflag
+chromium-bsu
+etelemetry
+freeciv-client-gtk3
+freeciv-data
+freedoom
+gnuchess
+gnome-games
+gnome-mines
+gnome-sudoku
+gnotski
+gweled
+hedgewars
+lbreakout2
+lgeneral
+liberated
+lincity-ng
+moon-buggy
+nethack-console
+nethack-x11
+nuvola-app-game
+peg-e
+pingus
+pybik
+supertux
+supertuxkart
+teeworlds
+wesnoth
+wesnoth-1.16-data
+wesnoth-1.16-music
+wesnoth-1.16-sounds
+xbattle
+xboard
+xmahjongg
+xmine
+xpenguins
+xpilot-ng-client-sdl
+
+# --- Game emulators ---
+dosbox
+mednafen
+stella
+snes9x-gtk
+
+# --- Steam (optional, lightweight installer) ---
+steam-installer
+steam-libs-amd64
+
+# --- Game tools ---
+lutris
+gamemode
+gamescope
+libgamemode0
+gamemode-tools

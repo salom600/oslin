@@ -1,0 +1,26 @@
+#!/bin/bash
+# OSLin quick hardware info - opens a terminal-friendly summary
+. /etc/oslin/oslin-common 2>/dev/null
+oslin_info "Hardware Summary"
+echo
+inxi -Fxz 2>/dev/null || {
+    echo "=== CPU ==="
+    lscpu | grep -E '^(Model name|Architecture|CPU\(s\)|Thread|Vendor)'
+    echo
+    echo "=== Memory ==="
+    free -h
+    echo
+    echo "=== GPU ==="
+    lspci | grep -iE 'vga|3d|display'
+    echo
+    echo "=== Storage ==="
+    lsblk -o NAME,SIZE,TYPE,MOUNTPOINT,FSTYPE
+    echo
+    echo "=== Network ==="
+    ip -br link
+    echo
+    if [ -f /etc/oslin/hw-profile ]; then
+        echo "=== OSLin Profile ==="
+        cat /etc/oslin/hw-profile
+    fi
+}

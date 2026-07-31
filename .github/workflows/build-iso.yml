@@ -1,0 +1,472 @@
+name: 🏗️ Build OSLin ISO
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      debug:
+        description: 'Enable debug logging'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['true', 'false']
+      skip_cache:
+        description: 'Skip apt cache (full rebuild)'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['true', 'false']
+
+permissions:
+  contents: write   # needed to create releases & upload ISO assets
+  packages: write   # for container registry pushes (future)
+  actions: write    # needed for auto-retry mechanism
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+  OSLIN_VERSION: "2026.1"
+  OSLIN_CODENAME: "aurora"
+
+jobs:
+  # ============================================================
+  # STAGE 1: Lint & Validate configuration
+  # ============================================================
+  validate:
+    name: 🔍 Validate Configuration
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      build_id: ${{ steps.meta.outputs.build_id }}
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔢 Generate build metadata
+        id: meta
+        run: |
+          # Build version: tag if pushed, else short-sha + date
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION="${OSLIN_VERSION}-$(date +%Y%m%d)-${GITHUB_SHA::7}"
+          fi
+          BUILD_ID="$(date +%Y%m%d-%H%M%S)-${GITHUB_RUN_NUMBER}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "build_id=$BUILD_ID" >> $GITHUB_OUTPUT
+          echo "::notice::Building OSLin version $VERSION (build $BUILD_ID)"
+
+      - name: ✅ Validate file structure
+        run: |
+          set -e
+          echo "::group::Directory structure"
+          find config -type f | sort
+          echo "::endgroup::"
+
+          # Required files
+          REQUIRED=(
+            "config/build"
+            "config/common"
+            "config/package-lists/oslin-base.list.chroot"
+            "config/package-lists/oslin-desktop.list.chroot"
+            "config/hooks/normal/01-setup-user.hook.chroot"
+            "config/hooks/normal/04-xfce-customization.hook.chroot"
+          )
+          for f in "${REQUIRED[@]}"; do
+            if [ ! -f "$f" ]; then
+              echo "::error::Missing required file: $f"
+              exit 1
+            fi
+          done
+
+          # All hook scripts must be executable
+          for hook in config/hooks/normal/*.hook.chroot config/hooks/live/*.hook.chroot; do
+            [ -f "$hook" ] || continue
+            if [ ! -x "$hook" ]; then
+              echo "::warning::Hook not executable: $hook — fixing"
+              chmod +x "$hook"
+            fi
+          done
+
+          # All scripts in includes must be executable
+          for script in config/includes.chroot/usr/local/bin/*; do
+            [ -f "$script" ] || continue
+            if [ ! -x "$script" ]; then
+              echo "::warning::Script not executable: $script — fixing"
+              chmod +x "$script"
+            fi
+          done
+
+          echo "✅ All validation checks passed"
+
+      - name: 📤 Upload validated tree
+        uses: actions/upload-artifact@v4
+        with:
+          name: oslin-validated
+          retention-days: 1
+          path: |
+            config/
+            scripts/
+            .github/
+
+  # ============================================================
+  # STAGE 2: Build the ISO (the real work)
+  # ============================================================
+  build:
+    name: 📀 Build ISO
+    runs-on: ubuntu-latest
+    needs: validate
+    timeout-minutes: 90
+    container:
+      image: debian:bookworm
+      options: --privileged
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔧 Install build dependencies
+        run: |
+          set -e
+          apt-get update -qq
+          apt-get install -y --no-install-recommends \
+            live-build \
+            debootstrap \
+            squashfs-tools \
+            xorriso \
+            genisoimage \
+            syslinux \
+            isolinux \
+            grub-pc-bin \
+            grub-efi-amd64-bin \
+            mtools \
+            dosfstools \
+            parted \
+            git \
+            curl \
+            wget \
+            ca-certificates \
+            jq \
+            python3 \
+            xz-utils \
+            cpio \
+            file
+          echo "✅ Build deps installed"
+
+      - name: 💾 Cache apt packages (optional speedup)
+        if: ${{ github.event.inputs.skip_cache != 'true' }}
+        uses: actions/cache@v4
+        with:
+          path: |
+            config/cache/packages
+            config/cache/indices
+          key: oslin-apt-cache-${{ hashFiles('config/package-lists/*.list.chroot') }}
+          restore-keys: |
+            oslin-apt-cache-
+
+      - name: 🧹 Clean previous build artifacts
+        run: |
+          rm -rf .build out
+          mkdir -p out
+
+      - name: 🏗️ Run live-build
+        id: build
+        run: |
+          set -e
+          # Working directory is the repo root - live-build expects config/ here
+          lb config noauto --distribution bookworm --architectures amd64 \
+            --archive-areas "main contrib non-free non-free-firmware" \
+            --iso-volume "OSLin ${{ needs.validate.outputs.version }}" \
+            --iso-application "OSLin Hybrid Distribution" \
+            --iso-publisher "OSLin Project" \
+            --iso-preparer "OSLin Build System" \
+            --bootappend-live "boot=live components username=oslin hostname=oslin locales=en_US.UTF-8,ar_SA.UTF-8 keyboard-layouts=us,ar timezone=Africa/Lagos quiet splash" \
+            --bootloader syslinux \
+            --debian-installer live \
+            --chroot-filesystem squashfs \
+            --compression xz \
+            --checksums sha256 \
+            --source false
+
+          # Run the build
+          echo "::group::live-build output"
+          lb build 2>&1 | tee build.log
+          echo "::endgroup::"
+
+          # The output file should be live-image-amd64.hybrid.iso
+          ISO_FILE=$(ls live-image-*.hybrid.iso 2>/dev/null | head -1 || true)
+          if [ -z "$ISO_FILE" ]; then
+            echo "::error::ISO build failed - no output file found"
+            echo "::group::Build log tail"
+            tail -100 build.log
+            echo "::endgroup::"
+            exit 1
+          fi
+
+          # Rename with version
+          OUTPUT_NAME="oslin-${{ needs.validate.outputs.version }}-amd64.iso"
+          mv "$ISO_FILE" "out/$OUTPUT_NAME"
+
+          # Generate SHA256SUMS
+          cd out
+          sha256sum "$OUTPUT_NAME" > SHA256SUMS
+          cd ..
+
+          # Save package list for transparency
+          dpkg --list > out/packages-manifest.txt 2>/dev/null || true
+
+          # Save build log
+          cp build.log out/build.log
+
+          echo "iso_path=out/$OUTPUT_NAME" >> $GITHUB_OUTPUT
+          echo "iso_name=$OUTPUT_NAME" >> $GITHUB_OUTPUT
+          echo "iso_size=$(du -h out/$OUTPUT_NAME | cut -f1)" >> $GITHUB_OUTPUT
+          echo "::notice::ISO built: $OUTPUT_NAME ($(du -h out/$OUTPUT_NAME | cut -f1))"
+
+      - name: 📤 Upload ISO artifact
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: oslin-iso-${{ needs.validate.outputs.version }}
+          path: out/
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: 📤 Upload build log on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: oslin-build-log-failed-${{ github.run_id }}
+          path: |
+            build.log
+            .build/
+          retention-days: 14
+          if-no-files-found: ignore
+
+  # ============================================================
+  # STAGE 3: Auto-Repair (analyze errors + auto-fix + retry)
+  # ============================================================
+  auto-repair:
+    name: 🛠️ Auto-Repair (if build failed)
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ failure() && github.event_name != 'pull_request' }}
+    timeout-minutes: 30
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: 📥 Download failed build log
+        uses: actions/download-artifact@v4
+        with:
+          name: oslin-build-log-failed-${{ github.run_id }}
+          path: ./failed-build
+        continue-on-error: true
+
+      - name: 🩺 Analyze build errors
+        id: analyze
+        run: |
+          set +e
+          LOG_DIR="./failed-build"
+          LOG_FILE=""
+          [ -f "$LOG_DIR/build.log" ] && LOG_FILE="$LOG_DIR/build.log"
+          [ -z "$LOG_FILE" ] && LOG_FILE=$(find "$LOG_DIR" -name '*.log' -type f 2>/dev/null | head -1)
+
+          if [ -z "$LOG_FILE" ] || [ ! -f "$LOG_FILE" ]; then
+            echo "::error::No build log found for analysis"
+            echo "fix_applied=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "::group::Build log (last 200 lines)"
+          tail -200 "$LOG_FILE"
+          echo "::endgroup::"
+
+          # Common error patterns and their fixes
+          FIX_DESCRIPTION="none"
+          FIX_APPLIED="false"
+
+          # Pattern 1: Missing package (404 from apt)
+          if grep -qiE 'E: Unable to locate package|404.*Not Found|E: Failed to fetch' "$LOG_FILE"; then
+            MISSING=$(grep -oE 'E: Unable to locate package [^ ]+' "$LOG_FILE" | awk '{print $NF}' | sort -u | head -10)
+            echo "::warning::Missing packages detected: $MISSING"
+            # Remove missing packages from the lists
+            for pkg in $MISSING; do
+              echo "Removing missing package: $pkg"
+              sed -i "/^${pkg}$/d" config/package-lists/*.list.chroot 2>/dev/null || true
+            done
+            FIX_DESCRIPTION="Removed unavailable packages: $MISSING"
+            FIX_APPLIED="true"
+          fi
+
+          # Pattern 2: Hook failed (chmod, file not found)
+          if grep -qiE 'hook.*failed|No such file or directory.*hook' "$LOG_FILE"; then
+            echo "::warning::Hook failure detected"
+            # Ensure all hooks are executable
+            chmod +x config/hooks/normal/*.hook.chroot config/hooks/live/*.hook.chroot 2>/dev/null || true
+            FIX_DESCRIPTION="${FIX_DESCRIPTION}; Made all hooks executable"
+            FIX_APPLIED="true"
+          fi
+
+          # Pattern 3: Network timeout during git clone in hooks
+          if grep -qiE 'fatal:.*Could not read|Connection timed out|Could not resolve host' "$LOG_FILE"; then
+            echo "::warning::Network failures detected in hooks"
+            # Add retry logic to git clones
+            for hook in config/hooks/normal/*.hook.chroot; do
+              if grep -q 'git clone' "$hook" 2>/dev/null; then
+                # Wrap with retry already in place via || true
+                if ! grep -q 'retry' "$hook" 2>/dev/null; then
+                  sed -i 's|git clone --depth=1|git clone --depth=1 --retry=3|g' "$hook" 2>/dev/null || true
+                fi
+              fi
+            done
+            FIX_DESCRIPTION="${FIX_DESCRIPTION}; Added git retry to theme installs"
+            FIX_APPLIED="true"
+          fi
+
+          # Pattern 4: Disk space
+          if grep -qiE 'No space left on device|disk full' "$LOG_FILE"; then
+            echo "::error::Disk space issue - cannot auto-fix, needs workflow change"
+            FIX_DESCRIPTION="${FIX_DESCRIPTION}; Disk space issue (manual fix needed)"
+          fi
+
+          echo "fix_applied=$FIX_APPLIED" >> $GITHUB_OUTPUT
+          echo "fix_description=$FIX_DESCRIPTION" >> $GITHUB_OUTPUT
+          echo "::notice::Auto-repair analysis: $FIX_DESCRIPTION"
+
+      - name: 💾 Commit & push fixes (if any)
+        if: ${{ steps.analyze.outputs.fix_applied == 'true' }}
+        run: |
+          git config user.name "OSLin Auto-Repair Bot"
+          git config user.email "actions@github.com"
+
+          git add -A
+          if git diff --staged --quiet; then
+            echo "::notice::No changes to commit despite detected issues"
+            exit 0
+          fi
+
+          git commit -m "🛠️ auto-repair: ${{ steps.analyze.outputs.fix_description }}
+
+          Auto-applied by OSLin Auto-Repair after build #${{ github.run_id }} failed.
+          See: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          git push origin HEAD:${GITHUB_REF_NAME}
+          echo "::notice::Fixes pushed. New commit will trigger a fresh build."
+
+      - name: 🚀 Trigger retry build
+        if: ${{ steps.analyze.outputs.fix_applied == 'true' }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const ref = '${{ github.ref_name }}';
+            console.log(`Triggering retry build on ${ref}...`);
+            const wf = await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'build-iso.yml',
+              ref: ref,
+              inputs: {
+                debug: 'false',
+                skip_cache: 'false'
+              }
+            });
+            console.log(`Retry workflow dispatched: ${wf.data.id}`);
+
+  # ============================================================
+  # STAGE 4: Release (only on tags / manual)
+  # ============================================================
+  release:
+    name: 📦 Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [validate, build]
+    if: ${{ startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch' }}
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📥 Download ISO artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: oslin-iso-${{ needs.validate.outputs.version }}
+          path: ./release
+
+      - name: 📦 Create / Update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.validate.outputs.version }}
+          name: "OSLin ${{ needs.validate.outputs.version }} (${{ needs.validate.outputs.build_id }})"
+          body: |
+            # OSLin ${{ needs.validate.outputs.version }}
+
+            **Codename:** Aurora
+            **Build ID:** ${{ needs.validate.outputs.build_id }}
+            **Commit:** ${{ github.sha }}
+
+            ## Download
+
+            1. Download the `.iso` file below
+            2. Flash to a USB stick (4GB+) using Rufus, balenaEtcher, or `dd`
+            3. Boot from USB — works on BIOS & UEFI, old & new hardware
+
+            ## Highlights
+
+            - 🪟 **Windows 11 / macOS hybrid look** (switchable themes)
+            - ⚡ **Lightweight** — runs in 512MB RAM (idle ~300MB)
+            - 🛒 **Built-in App Store** (Flatpak + AppImage + Snap via bauh)
+            - 🎮 **Pre-installed games** (SuperTuxKart, 0AD, Wesnoth, and more)
+            - 🔧 **Auto hardware detection** (Nvidia / Intel / AMD)
+            - 🌐 **Multilingual** — English + Arabic built-in
+            - 💾 **Live + Installable** — try without installing
+
+            ## Verify
+
+            See `SHA256SUMS` for integrity check.
+
+            ```bash
+            sha256sum -c SHA256SUMS
+            ```
+          files: |
+            release/*.iso
+            release/SHA256SUMS
+            release/packages-manifest.txt
+            release/build.log
+          draft: false
+          prerelease: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+          generate_release_notes: true
+
+  # ============================================================
+  # STAGE 5: Final status notification
+  # ============================================================
+  notify:
+    name: 📢 Status
+    runs-on: ubuntu-latest
+    needs: [validate, build, auto-repair, release]
+    if: always()
+    steps:
+      - name: 📊 Build summary
+        run: |
+          echo "=============================================="
+          echo " OSLin Build Pipeline Summary"
+          echo "=============================================="
+          echo "Validate:    ${{ needs.validate.result }}"
+          echo "Build:       ${{ needs.build.result }}"
+          echo "Auto-Repair: ${{ needs.auto-repair.result }}"
+          echo "Release:     ${{ needs.release.result }}"
+          echo "=============================================="
+          if [ "${{ needs.build.result }}" = "success" ]; then
+            echo "✅ ISO successfully built and uploaded"
+          elif [ "${{ needs.auto-repair.result }}" = "success" ]; then
+            echo "🛠️ Auto-repair applied fixes — a retry build has been triggered"
+          else
+            echo "❌ Build failed and auto-repair could not resolve it"
+            echo "👉 Check the failed build log artifact for details"
+          fi

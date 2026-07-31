@@ -1,0 +1,15 @@
+[Unit]
+Description=OSLin First Boot Setup
+After=graphical.target oslin-hw-detect.service
+Wants=graphical.target
+ConditionPathExists=!/etc/oslin/.firstboot-done
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/oslin-firstboot
+StandardOutput=journal+console
+StandardError=journal+console
+RemainAfterExit=yes
+
+[Install]
+WantedBy=graphical.target
