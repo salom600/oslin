@@ -1,9 +1,10 @@
 # ============================================
-# OSLin - Games & Windows .exe support
-# One-click .exe support via Bottles + Wine + Proton
+# OSLin - Games & Windows .exe support (SLIM)
+# Pre-installed: Wine + Bottles only.
+# Steam, Lutris, Heroic → App Store (one-click)
 # ============================================
 
-# --- Wine (run Windows .exe files) ---
+# --- Wine (run Windows .exe files — Bottles uses this) ---
 wine
 wine64
 libwine
@@ -11,19 +12,9 @@ fonts-wine
 wine-binfmt
 
 # --- Bottles: modern GUI for Wine (one-click .exe install) ---
-# Installed via Flatpak from Flathub in the store hook
-# (Bottles is the modern alternative to PlayOnLinux)
+# Installed via Flatpak from Flathub in the modern-desktop hook
 
-# --- Lutris: game launcher (Steam, Epic, GOG, emulators) ---
-lutris
-
-# --- Heroic Games Launcher (Epic + GOG) ---
-# Installed via Flatpak from Flathub
-
-# --- Steam (via Flatpak in store hook) ---
-# Native steam-installer needs i386 multiarch — we use Flatpak instead
-
-# --- Game tools ---
+# --- Game performance tools (small, useful) ---
 gamemode
 libgamemode0
 gamescope

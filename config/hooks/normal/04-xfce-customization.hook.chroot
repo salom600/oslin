@@ -260,7 +260,7 @@ cat > "$XFCE_DIR/xfconf/xfce-perchannel-xml/xfce4-panel.xml" <<'EOF'
     </property>
     <property name="plugin-17" type="string" value="launcher-14">
       <property name="items" type="array">
-        <property name="item-0" type="string" value="com.usebottles.bottles.desktop"/>
+        <property name="item-0" type="string" value="oslin-store.desktop"/>
       </property>
     </property>
 

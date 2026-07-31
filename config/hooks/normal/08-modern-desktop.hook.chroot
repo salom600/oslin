@@ -74,8 +74,11 @@ if [ -d /home/oslin ]; then
     chown -R oslin:oslin /home/oslin/.config
 fi
 
-# ---------- 4. Install Bottles + Heroic via Flatpak (one-click .exe) ----------
-echo "[OSLin] Installing Bottles + Heroic for Windows .exe support..."
+# ---------- 4. Install Bottles only via Flatpak (one-click .exe) ----------
+# NOTE: Steam, Heroic, and Lutris are available in the App Store (bauh) as
+# one-click installs. We do NOT pre-install them to keep ISO under 3GB.
+# Bottles is the only .exe runner we pre-install (it's smaller, ~200MB).
+echo "[OSLin] Installing Bottles for Windows .exe support..."
 if command -v flatpak >/dev/null 2>&1; then
     # Ensure Flathub remote is configured
     flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
@@ -85,15 +88,8 @@ if command -v flatpak >/dev/null 2>&1; then
         echo "[OSLin] WARNING: Bottles install failed (network?) — users can install from store later"
     }
 
-    # Heroic Games Launcher (Epic + GOG)
-    flatpak install -y --system flathub com.heroicgameslauncher.hgl 2>/dev/null || {
-        echo "[OSLin] WARNING: Heroic install failed — users can install from store later"
-    }
-
-    # Steam (Flatpak avoids i386 multiarch issues)
-    flatpak install -y --system flathub com.valvesoftware.Steam 2>/dev/null || {
-        echo "[OSLin] WARNING: Steam install failed — users can install from store later"
-    }
+    # Steam + Heroic + Lutris are available in the App Store (bauh) as one-click installs.
+    # Not pre-installed to keep ISO size under 3GB.
 fi
 
 # ---------- 5. Custom Plymouth boot splash ----------
