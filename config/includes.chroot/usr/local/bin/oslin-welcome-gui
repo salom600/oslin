@@ -1,6 +1,8 @@
 #!/bin/bash
-# OSLin Welcome GUI - shown on first login
-# Powered by zenity
+# ============================================
+# OSLin Welcome App - shown on first login
+# A custom-styled welcome dialog with actionable buttons
+# ============================================
 set -u
 
 # Wait for the desktop to come up
@@ -13,20 +15,44 @@ if ! command -v zenity >/dev/null 2>&1; then
     exit 0
 fi
 
-zenity --info --title="Welcome to OSLin" --no-wrap \
-    --text="<span size='x-large' weight='bold'>Welcome to OSLin 2026.1 Aurora</span>
+# Show the welcome dialog with buttons for common actions
+CHOICE=$(zenity --question --title="Welcome to OSLin" --no-wrap \
+    --ok-label="Open App Store" \
+    --cancel-label="Maybe later" \
+    --text="<span size='xx-large' weight='bold' foreground='#0078D4'>OSLin 2026.1 Aurora</span>
 
-Your sleek, lightweight, modern Linux that brings the best of Windows 11 and macOS — without the bloat.
+<span size='medium' weight='bold'>Welcome! Let's get you started.</span>
+
+<span size='small' foreground='#555555'>
+Your sleek, lightweight, modern Linux that brings the best of
+Windows 11 and macOS — without the bloat.
 
 Getting started:
-• Click the OSLin logo (top-left) for apps
-• Press Super+S to open the App Store
-• Press Super+I to open the Control Center
-• Press Super+T for a terminal
+ • Click the OSLin logo (top-left) for apps
+ • Press Super+S to open the App Store
+ • Press Super+I to open the Control Center
+ • Press Super+T for a terminal
 
-Hardware drivers (Nvidia / Intel / AMD) are auto-installed on first boot.
+Hardware drivers (Nvidia / Intel / AMD) are auto-detected.
+If you're offline, the system will remind you to install drivers
+once you connect to the internet.
+</span>" \
+    --extra-button="Configure Theme" \
+    --extra-button="Install Drivers" \
+    2>/dev/null)
 
-Enjoy! 🎉" 2>/dev/null
+# zenity returns 0 for ok, 1 for cancel, and the button text for extras
+EXIT=$?
+
+if [ "$EXIT" = "0" ]; then
+    # Open App Store
+    nohup /usr/local/bin/oslin-store >/dev/null 2>&1 &
+elif [ "$CHOICE" = "Configure Theme" ]; then
+    /usr/local/bin/oslin-control-center &
+elif [ "$CHOICE" = "Install Drivers" ]; then
+    xfce4-terminal -T "OSLin Driver Installer" -e \
+        "sudo /usr/local/bin/oslin-hw-detect; echo; echo 'Press Enter to close...'; read" &
+fi
 
 # Mark welcome shown
 mkdir -p /etc/oslin

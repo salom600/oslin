@@ -1,16 +1,21 @@
 [Unit]
-Description=OSLin Hardware Detection & Driver Installer
-After=network-online.target
-Wants=network-online.target
-ConditionPathExists=!/etc/oslin/hw-profile
+Description=OSLin Hardware Detection & Driver Installer (background, non-blocking)
+# Run AFTER the desktop is up so we never block login
+After=graphical.target
+# Do NOT hard-require network — we'll wait for it inside the script
+# (and silently skip if it never comes up)
 
 [Service]
 Type=oneshot
+# Non-fatal: if this fails, the system still boots
+SuccessExitStatus=0 2
 ExecStart=/usr/local/bin/oslin-hw-detect
 StandardOutput=journal+console
 StandardError=journal+console
 RemainAfterExit=yes
-TimeoutStartSec=600
+TimeoutStartSec=900
+# Don't restart automatically — user can re-trigger from Control Center
+Restart=no
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=graphical.target

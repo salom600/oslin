@@ -12,8 +12,11 @@ echo "[OSLin] Setting up default user 'oslin'..."
 # Users can change it after install
 # Only add groups that exist (cups/printer/scanner may be missing in slim build)
 if ! id oslin >/dev/null 2>&1; then
+    # Create 'autologin' group (needed by LightDM for auto-login in live session)
+    groupadd -f autologin 2>/dev/null || true
+
     SUPP_GROUPS=""
-    for g in sudo adm cdrom audio video plugdev netdev bluetooth lpadmin scanner; do
+    for g in sudo adm cdrom audio video plugdev netdev bluetooth lpadmin scanner autologin; do
         if getent group "$g" >/dev/null 2>&1; then
             SUPP_GROUPS="${SUPP_GROUPS:+$SUPP_GROUPS,}$g"
         fi
@@ -29,6 +32,14 @@ fi
 # Enable passwordless sudo for oslin (during live session)
 echo "oslin ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/oslin
 chmod 0440 /etc/sudoers.d/oslin
+
+# Configure PAM to allow autologin group (required by LightDM auto-login)
+if [ -f /etc/pam.d/lightdm ]; then
+    if ! grep -q '^auth.*required.*pam_succeed_if.so.*user.*ingroup.*autologin' /etc/pam.d/lightdm; then
+        # Insert at the top of the auth section
+        sed -i '/^@include common-auth/i auth    sufficient    pam_succeed_if.so user ingroup autologin' /etc/pam.d/lightdm 2>/dev/null || true
+    fi
+fi
 
 # Set root password (locked by default, can be unlocked by user)
 passwd -l root || true

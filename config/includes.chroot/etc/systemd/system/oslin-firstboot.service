@@ -1,6 +1,6 @@
 [Unit]
-Description=OSLin First Boot Setup
-After=graphical.target oslin-hw-detect.service
+Description=OSLin First Boot Setup (non-blocking)
+After=graphical.target
 Wants=graphical.target
 ConditionPathExists=!/etc/oslin/.firstboot-done
 
@@ -10,6 +10,9 @@ ExecStart=/usr/local/bin/oslin-firstboot
 StandardOutput=journal+console
 StandardError=journal+console
 RemainAfterExit=yes
+# Never block boot
+SuccessExitStatus=0 1 2
+TimeoutStartSec=60
 
 [Install]
 WantedBy=graphical.target

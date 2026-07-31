@@ -1,14 +1,23 @@
 [Unit]
-Description=OSLin Welcome Screen
+Description=OSLin Welcome Screen (first-login only)
+# Run after the graphical session + network stack are up
 After=graphical.target
+Wants=graphical.target
+# Only run once per system
 ConditionPathExists=!/etc/oslin/.welcome-shown
 
 [Service]
 Type=oneshot
 User=oslin
 Environment=DISPLAY=:0
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
+# Wait up to 60s for the desktop to actually be ready
+ExecStartPre=/bin/sleep 8
 ExecStart=/usr/local/bin/oslin-welcome-gui
+# Non-fatal — never block boot if welcome fails
+SuccessExitStatus=0 1 2
 RemainAfterExit=yes
+TimeoutStartSec=120
 
 [Install]
 WantedBy=graphical.target

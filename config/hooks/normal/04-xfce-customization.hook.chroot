@@ -251,22 +251,73 @@ cat > "$XFCE_DIR/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml" <<'EOF
 </channel>
 EOF
 
-# ---------- LightDM greeter config ----------
+# ---------- LightDM greeter config (OSLin custom login screen) ----------
 mkdir -p /etc/lightdm
+
+# Convert the SVG wallpaper to PNG for the greeter (SVG not supported by LightDM)
+if command -v rsvg-convert >/dev/null 2>&1 || command -v convert >/dev/null 2>&1; then
+    if [ -f /usr/share/wallpapers/oslin-wallpaper.svg ]; then
+        if command -v rsvg-convert >/dev/null 2>&1; then
+            rsvg-convert -w 1920 -h 1080 /usr/share/wallpapers/oslin-wallpaper.svg \
+                -o /usr/share/wallpapers/oslin/wallpaper-default.png 2>/dev/null || true
+        else
+            convert -resize 1920x1080 /usr/share/wallpapers/oslin-wallpaper.svg \
+                /usr/share/wallpapers/oslin/wallpaper-default.png 2>/dev/null || true
+        fi
+    fi
+fi
+# Fallback: create a simple gradient PNG if conversion failed
+if [ ! -f /usr/share/wallpapers/oslin/wallpaper-default.png ]; then
+    mkdir -p /usr/share/wallpapers/oslin
+    # Use ImageMagick 'convert' if available, otherwise just touch a placeholder
+    if command -v convert >/dev/null 2>&1; then
+        convert -size 1920x1080 gradient:'#0A2540'-'#0078D4' \
+            -gravity center -fill white -pointsize 72 -annotate 0 'OSLin' \
+            /usr/share/wallpapers/oslin/wallpaper-default.png 2>/dev/null || true
+    fi
+fi
+
 cat > /etc/lightdm/lightdm-gtk-greeter.conf <<'EOF'
 [greeter]
+# Theme: macOS Big Sur look (WhiteSur)
 theme-name = WhiteSur-Light
 icon-theme-name = WhiteSur
 cursor-theme-name = WhiteSur-cursors
 cursor-theme-size = 24
 font-name = Noto Sans 12
+# Background: OSLin branded wallpaper
 background = /usr/share/wallpapers/oslin/wallpaper-default.png
 user-background = false
+# Clock on login screen
 show-clock = true
-clock-format = %a, %b %d  %H:%M
+clock-format = %A, %B %d  ·  %H:%M
+# Show language + session selectors
 show-language-selector = true
 show-session-selector = true
+# Power button (shutdown / restart) on login screen
 show-power = true
+# Don't show the user list (security + cleaner look)
+show-user-list = false
+# Require manual username entry
+EOF
+
+# Also configure lightdm.conf itself for auto-login in LIVE session
+# (but NOT after install - the installed system will require login)
+cat > /etc/lightdm/lightdm.conf <<'EOF'
+[Seat:*]
+# Live session: auto-login as 'oslin' (no password prompt on boot)
+# After install, calamares will overwrite this with a proper config.
+autologin-user=oslin
+autologin-user-timeout=10
+autologin-session=xfce
+user-session=xfce
+greeter-session=lightdm-gtk-greeter
+# Hide the user list (cleaner look)
+greeter-hide-users=false
+# Allow manual login (for security / multi-user)
+greeter-show-manual-login=true
+# Don't show the failed attempts counter
+show-secure-text=false
 EOF
 
 # ---------- File associations: sensible defaults ----------

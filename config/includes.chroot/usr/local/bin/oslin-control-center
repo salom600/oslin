@@ -80,6 +80,30 @@ switch_keyboard() {
     setxkbmap -layout "$layout"
 }
 
+# Function: install / re-trigger hardware drivers
+install_drivers() {
+    # Check for internet first
+    if ! ping -c 1 -W 5 deb.debian.org >/dev/null 2>&1; then
+        zenity --error --title="No Internet" \
+            --text="Internet connection required to download proprietary drivers.
+Please connect to Wi-Fi or Ethernet and try again.
+Your desktop works fine with open-source drivers in the meantime." 2>/dev/null
+        return 0
+    fi
+
+    # Confirm before proceeding
+    zenity --question --title="Install Drivers" \
+        --text="This will detect your GPU and install the appropriate proprietary drivers.
+The system will then need a reboot.
+
+Continue?" 2>/dev/null || return 0
+
+    # Run hw-detect in a terminal so user sees progress
+    xfce4-terminal -T "OSLin Driver Installer" -e \
+        "sudo rm -f /etc/oslin/hw-profile && sudo /usr/local/bin/oslin-hw-detect; echo; echo 'Press Enter to close...'; read" \
+        2>/dev/null
+}
+
 # Main menu
 main() {
     local choice
@@ -89,15 +113,17 @@ main() {
         "theme" "Change theme (Win11 / macOS)" \
         "wallpaper" "Change wallpaper" \
         "store" "Open app store" \
+        "drivers" "Install / update hardware drivers" \
         "hardware" "Show hardware information" \
         "keyboard" "Switch keyboard layout" \
         "update" "Update the system" \
-        --height=380 --width=480 2>/dev/null) || exit 0
+        --height=420 --width=520 2>/dev/null) || exit 0
 
     case "$choice" in
         theme)     change_theme ;;
         wallpaper) change_wallpaper ;;
         store)     open_store ;;
+        drivers)   install_drivers ;;
         hardware)  show_hw_info ;;
         keyboard)  switch_keyboard ;;
         update)    zenity --question --title="Update" --text="Run a full system update?" 2>/dev/null \

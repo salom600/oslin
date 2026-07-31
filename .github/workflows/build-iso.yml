@@ -143,6 +143,8 @@ jobs:
             isolinux \
             grub-pc-bin \
             grub-efi-amd64-bin \
+            grub-efi-amd64-signed \
+            shim-signed \
             mtools \
             dosfstools \
             parted \
@@ -155,7 +157,7 @@ jobs:
             xz-utils \
             cpio \
             file
-          echo "✅ Build deps installed"
+          echo "✅ Build deps installed (incl. UEFI/Secure Boot packages)"
 
       - name: 💾 Cache apt packages (optional speedup)
         if: ${{ github.event.inputs.skip_cache != 'true' }}
@@ -178,6 +180,8 @@ jobs:
         run: |
           set -e
           # Working directory is the repo root - live-build expects config/ here
+          # --bootloaders "syslinux,grub-efi" → hybrid BIOS + UEFI ISO
+          # --uefi-secure-boot enable          → supports Secure Boot
           lb config noauto --distribution bookworm --architectures amd64 \
             --archive-areas "main contrib non-free non-free-firmware" \
             --iso-volume "OSLin ${{ needs.validate.outputs.version }}" \
@@ -185,7 +189,8 @@ jobs:
             --iso-publisher "OSLin Project" \
             --iso-preparer "OSLin Build System" \
             --bootappend-live "boot=live components username=oslin hostname=oslin locales=en_US.UTF-8,ar_SA.UTF-8 keyboard-layouts=us,ar timezone=Africa/Lagos quiet splash" \
-            --bootloader syslinux \
+            --bootloaders "syslinux,grub-efi" \
+            --uefi-secure-boot enable \
             --debian-installer live \
             --chroot-filesystem squashfs \
             --compression xz \

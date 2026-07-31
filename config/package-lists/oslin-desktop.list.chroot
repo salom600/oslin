@@ -31,6 +31,17 @@ xserver-xorg-video-nouveau
 xserver-xorg-video-vesa
 x11-xserver-utils
 xauth
+# --- Mesa open-source GL stack (pre-installed so desktop works offline) ---
+# These provide hardware-accelerated OpenGL/Vulkan for ALL GPUs
+# without needing internet on first boot.
+mesa-va-drivers
+mesa-vulkan-drivers
+libgl1-mesa-dri
+libglx-mesa0
+libgl1
+libegl1
+libegl-mesa0
+vulkan-tools
 pulseaudio
 pavucontrol
 alsa-utils
@@ -53,3 +64,9 @@ firefox-esr
 file-roller
 p7zip-full
 zenity
+# --- Notification daemon (for desktop notifications from hw-detect etc.) ---
+libnotify-bin
+notify-osd
+# --- Image tools (for SVG→PNG conversion at build time + runtime) ---
+librsvg2-bin
+imagemagick

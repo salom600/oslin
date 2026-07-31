@@ -1,17 +1,17 @@
 #!/bin/sh
 # ============================================
 # OSLin - Hook: 05-installer-setup.chroot
-# Configures Calamares for OSLin branding
+# Configures Calamares for OSLin branding (custom welcome + slideshow)
 # ============================================
 set -e
 
-echo "[OSLin] Configuring Calamares installer..."
+echo "[OSLin] Configuring Calamares installer with OSLin branding..."
 
 # Ensure calamares desktop entry is in the live user's autostart
 mkdir -p /etc/skel/Desktop
 mkdir -p /etc/skel/.config/autostart
 
-# Desktop shortcut for "Install OSLin"
+# Desktop shortcut for "Install OSLin" — uses our custom icon
 cat > /etc/skel/Desktop/install-oslin.desktop <<'EOF'
 [Desktop Entry]
 Type=Application
@@ -20,79 +20,231 @@ Name[ar]=تثبيت OSLin
 Comment=Install OSLin to your hard drive
 Comment[ar]=ثبّت OSLin على قرصك الصلب
 Exec=sudo calamares
-Icon=calamares
+Icon=oslin-logo
 Terminal=false
 Categories=System;
 StartupNotify=true
 EOF
 chmod +x /etc/skel/Desktop/install-oslin.desktop
 
+# Also add to the whisker menu
+mkdir -p /etc/skel/.local/share/applications
+cp /etc/skel/Desktop/install-oslin.desktop /etc/skel/.local/share/applications/
+
 # OSLin branding for calamares (if calamares is installed)
 if [ -d /etc/calamares ]; then
     mkdir -p /etc/calamares/branding/oslin
+
+    # Convert SVG logo to PNG (calamares prefers PNG)
+    if command -v rsvg-convert >/dev/null 2>&1; then
+        rsvg-convert -w 256 -h 256 /usr/share/icons/hicolor/scalable/apps/oslin-logo.svg \
+            -o /etc/calamares/branding/oslin/logo.png 2>/dev/null || true
+        rsvg-convert -w 1920 -h 1080 /usr/share/wallpapers/oslin-wallpaper.svg \
+            -o /etc/calamares/branding/oslin/wallpaper.png 2>/dev/null || true
+    fi
 
     # Branding descriptor
     cat > /etc/calamares/branding/oslin/branding.desc <<'EOF'
 ---
 componentName: oslin
 welcomeStyleCalamares: false
+
 string:
-    productName:         OSLin
-    shortProductName:    OSLin
-    version:             2026.1
-    shortVersion:        2026.1
-    codename:            Aurora
-    productUrl:          https://github.com/salom600/oslin
-    supportUrl:          https://github.com/salom600/oslin/issues
-    knownIssuesUrl:      https://github.com/salom600/oslin/issues
-    releaseNotesUrl:     https://github.com/salom600/oslin/releases
+    productName:         "OSLin"
+    shortProductName:    "OSLin"
+    version:             "2026.1"
+    shortVersion:        "2026.1"
+    codename:            "Aurora"
+
+    productUrl:          "https://github.com/salom600/oslin"
+    supportUrl:          "https://github.com/salom600/oslin/issues"
+    knownIssuesUrl:      "https://github.com/salom600/oslin/issues"
+    releaseNotesUrl:     "https://github.com/salom600/oslin/releases"
+
 images:
-    productLogo:         "/usr/share/icons/hicolor/scalable/apps/oslin-logo.svg"
-    productWallpaper:    "/usr/share/wallpapers/oslin-wallpaper.svg"
-    productWelcome:      "/usr/share/icons/hicolor/scalable/apps/oslin-logo.svg"
-slideshow:               "1.0"
+    productLogo:         "logo.png"
+    productWallpaper:    "wallpaper.png"
+    productWelcome:      "logo.png"
+
+slideshow:               "show.qml"
+slideshowDuration:       30000
+
 style:
    SidebarBackground:    "#0A2540"
    SidebarText:          "#FFFFFF"
    SidebarTextSelect:    "#00B4D8"
+   SidebarBackgroundSelected: "#0078D4"
 EOF
 
-    # Slideshow (simple)
-    cat > /etc/calamares/branding/oslin/show.qml <<'EOF'
-import QtQuick 2.0;
+    # Polished QML slideshow with logo, rotating messages, and progress feel
+    cat > /etc/calamares/branding/oslin/show.qml <<'QMLEOF'
+import QtQuick 2.7
 
 Rectangle {
     id: root
     color: "#0A2540"
-    property var images: []
-    property var strings: [
-        "Welcome to OSLin",
-        "Lightweight, Modern, Yours",
-        "Windows 11 / macOS Hybrid Look",
-        "Auto Hardware Detection",
-        "One-Click App Store",
-        "Installing..."
+    width: 800
+    height: 600
+
+    property int slideIndex: 0
+    property var slides: [
+        { title: "Welcome to OSLin",    subtitle: "Lightweight · Modern · Yours" },
+        { title: "Windows 11 / macOS",  subtitle: "Switchable hybrid themes" },
+        { title: "One-Click App Store", subtitle: "Flatpak · AppImage · Snap" },
+        { title: "Auto Driver Install", subtitle: "Nvidia · Intel · AMD detected automatically" },
+        { title: "All Devices",         subtitle: "BIOS & UEFI · old & new hardware" },
+        { title: "Installing...",       subtitle: "Please wait while OSLin sets up your system" }
     ]
-    Text {
-        anchors.centerIn: parent
-        text: strings[index % strings.length]
-        color: "white"
-        font.pixelSize: 36
-        font.weight: Font.Light
+
+    // Logo at top
+    Image {
+        id: logo
+        source: "logo.png"
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        anchors.topMargin: 60
+        width: 120
+        height: 120
+        fillMode: Image.PreserveAspectFit
+        smooth: true
     }
+
+    // Title (large)
+    Text {
+        id: title
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: logo.bottom
+        anchors.topMargin: 40
+        text: slides[root.slideIndex].title
+        color: "#FFFFFF"
+        font.pixelSize: 44
+        font.weight: Font.DemiBold
+        font.family: "Noto Sans"
+
+        Behavior on text {
+            SequentialAnimation {
+                NumberAnimation { target: title; property: "opacity"; to: 0; duration: 250 }
+                PropertyAction {}
+                NumberAnimation { target: title; property: "opacity"; to: 1; duration: 250 }
+            }
+        }
+    }
+
+    // Subtitle (smaller, accent color)
+    Text {
+        id: subtitle
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: title.bottom
+        anchors.topMargin: 20
+        text: slides[root.slideIndex].subtitle
+        color: "#00B4D8"
+        font.pixelSize: 22
+        font.weight: Font.Light
+        font.family: "Noto Sans"
+
+        Behavior on text {
+            SequentialAnimation {
+                NumberAnimation { target: subtitle; property: "opacity"; to: 0; duration: 250 }
+                PropertyAction {}
+                NumberAnimation { target: subtitle; property: "opacity"; to: 1; duration: 250 }
+            }
+        }
+    }
+
+    // Footer with version
+    Text {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 30
+        text: "OSLin 2026.1 Aurora"
+        color: "#5A8FBC"
+        font.pixelSize: 14
+        font.weight: Font.Light
+        font.family: "Noto Sans"
+    }
+
+    // Progress dots at bottom
+    Row {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 70
+        spacing: 12
+
+        Repeater {
+            model: slides.length
+            Rectangle {
+                width: 10
+                height: 10
+                radius: 5
+                color: index === root.slideIndex ? "#00B4D8" : "#1E3A5F"
+                Behavior on color { ColorAnimation { duration: 250 } }
+            }
+        }
+    }
+
+    // Slide rotation timer
     Timer {
-        interval: 2000
+        interval: 4000
         running: true
         repeat: true
-        onTriggered: parent.index = (parent.index || 0) + 1
+        onTriggered: {
+            root.slideIndex = (root.slideIndex + 1) % slides.length
+        }
     }
 }
+QMLEOF
+
+    # Set the OSLin branding as default in settings.conf
+    if [ -f /etc/calamares/settings.conf ]; then
+        sed -i 's/^.*branding:.*$/    branding: oslin/' /etc/calamares/settings.conf 2>/dev/null || true
+    fi
+
+    # If no settings.conf exists, create a minimal one
+    if [ ! -f /etc/calamares/settings.conf ]; then
+        cat > /etc/calamares/settings.conf <<'EOF'
+---
+branding: oslin
+sequence:
+    - show:
+        - welcome
+        - locale
+        - keyboard
+        - partition
+        - users
+        - summary
+    - exec:
+        - partition
+        - mount
+        - unpackfs
+        - sources-media
+        - machineid
+        - fstab
+        - locale
+        - keyboard
+        - localecfg
+        - users
+        - displaymanager
+        - networkcfg
+        - hwclock
+        - services-systemd
+        - contextualprocess
+        - packages
+        - luksbootkeyfile
+        - plymouthcfg
+        - initramfscfg
+        - initramfs
+        - grubcfg
+        - bootloader
+        - umount
+    - show:
+        - finished
 EOF
+    fi
 fi
 
 # Set up live session user password for sudo (calamares needs it)
 echo "oslin ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/99-oslin-live
 chmod 0440 /etc/sudoers.d/99-oslin-live
 
-echo "[OSLin] Calamares configured."
+echo "[OSLin] Calamares branded with OSLin logo, custom slideshow, and theme colors."
 exit 0
