@@ -1,108 +1,15 @@
 # ============================================
-# OSLin - Developer & Power User Tools
+# OSLin - Tools (SLIM - ~50MB)
 # ============================================
-
-# --- Languages ---
-python3
-python3-dev
-python3-pip
-python3-venv
-python3-wheel
-gcc
-g++
-make
-cmake
-build-essential
-pkg-config
-ruby
-golang-go
-rustc
-cargo
-nodejs
-npm
-default-jdk
-default-jre
-
-# --- Editors ---
-vim
-neovim
-emacs
-gedit
-
-# --- Version control ---
 git
-git-gui
-gitk
-mercurial
-subversion
-
-# --- Containers ---
-docker.io
-docker-compose
-podman
-
-# --- Virtualization ---
-qemu-system
-qemu-utils
-virt-manager
-virt-viewer
-libvirt-daemon-system
-libvirt-clients
-
-# --- Disk / partitions ---
-gparted
-gnome-disk-utility
-partitionmanager
-
-# --- Terminal emulators ---
-tilix
-alacritty
-kitty
-
-# --- System tools ---
+curl
+wget
 htop
-btop
-iotop
-ncdu
-duf
-bat
-exa
-fd-find
-ripgrep
-tldr
-glances
 neofetch
 inxi
-hardinfo
-
-# --- Networking ---
-nmap
-wireshark
-tcpdump
-iperf3
-mtr
-curl
-httpie
-wget2
-
-# --- Security ---
-keepassxc
-cryptsetup
-seahorse
-gnupg2
-openssh-client
-openssh-server
-fail2ban
+nano
+vim-tiny
 ufw
-gufw
-
-# --- Download tools ---
-transmission-gtk
-qbittorrent
-aria2
-yt-dlp
-gallery-dl
-
-# --- Cloud sync ---
-rclone
-nextcloud-desktop
+gnome-disk-utility
+baobab
+evince

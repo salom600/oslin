@@ -1,171 +1,55 @@
 # ============================================
-# OSLin - Desktop Environment (XFCE customized)
+# OSLin - Desktop Environment (SLIM - ~300MB)
 # ============================================
-# XFCE 4 - lightweight (~300MB RAM idle), fully themeable
-
-# --- XFCE core ---
 xfce4
-xfce4-goodies
-xfce4-appfinder
-xfce4-clipman-plugin
-xfce4-cpugraph-plugin
-xfce4-datetime-plugin
-xfce4-dict
-xfce4-diskperf-plugin
-xfce4-fsguard-plugin
-xfce4-genmon-plugin
-xfce4-mailwatch-plugin
-xfce4-netload-plugin
-xfce4-notifyd
-xfce4-panel
-xfce4-places-plugin
-xfce4-power-manager
-xfce4-pulseaudio-plugin
-xfce4-screenshooter
-xfce4-sensors-plugin
-xfce4-session
-xfce4-settings
-xfce4-systemload-plugin
-xfce4-taskmanager
 xfce4-terminal
-xfce4-timer-plugin
-xfce4-verve-plugin
-xfce4-wavelan-plugin
-xfce4-weather-plugin
+xfce4-settings
+xfce4-session
+xfce4-panel
+xfce4-power-manager
+xfce4-notifyd
+xfce4-screenshooter
+xfce4-taskmanager
 xfce4-whiskermenu-plugin
-xfce4-xkb-plugin
+xfce4-cpugraph-plugin
+xfce4-pulseaudio-plugin
 xfwm4
 thunar
 thunar-archive-plugin
-thunar-media-tags-plugin
 thunar-volman
 tumbler
 mousepad
 ristretto
-
-# --- Display manager (lightweight) ---
 lightdm
 lightdm-gtk-greeter
-lightdm-gtk-greeter-settings
-
-# --- Display server ---
 xserver-xorg
 xserver-xorg-video-all
 xserver-xorg-video-amdgpu
 xserver-xorg-video-ati
-xserver-xorg-video-fbdev
 xserver-xorg-video-intel
 xserver-xorg-video-nouveau
-xserver-xorg-video-qxl
 xserver-xorg-video-vesa
-xserver-xorg-video-vmware
 x11-xserver-utils
-x11-utils
 xauth
-xinit
-xinput
-
-# --- Audio ---
 pulseaudio
-pulseaudio-utils
 pavucontrol
 alsa-utils
-alsa-tools
-alsa-firmware-loaders
-
-# --- Network ---
 network-manager
 network-manager-gnome
-network-manager-openvpn
-network-manager-openvpn-gnome
-network-manager-vpnc
-network-manager-vpnc-gnome
 wpasupplicant
-wireless-tools
-
-# --- Bluetooth ---
 bluez
-bluez-tools
 blueman
-
-# --- Print ---
-cups
-cups-pk-helper
-system-config-printer
-printer-driver-all
-
-# --- Themes & icons (will be augmented by scripts) ---
-adwaita-icon-theme
-papirus-icon-theme
 gtk2-engines-murrine
 gtk2-engines-pixbuf
-gtk3-engines-breeze
-qt5-style-plugins
-libqt5svg5
-
-# --- Fonts (good multilingual coverage incl Arabic) ---
-fonts-noto
-fonts-noto-cjk
-fonts-noto-color-emoji
+papirus-icon-theme
 fonts-noto-core
-fonts-noto-extra
 fonts-noto-ui-core
 fonts-noto-mono
-fonts-hack-ttf
-fonts-firacode
 fonts-dejavu-core
-fonts-liberation
 fonts-liberation2
-fonts-arabeyes
 fonts-kacst
 fonts-hosny-amiri
-
-# --- Multimedia ---
-mpv
-vlc
-ffmpeg
-gstreamer1.0-plugins-base
-gstreamer1.0-plugins-good
-gstreamer1.0-plugins-bad
-gstreamer1.0-plugins-ugly
-gstreamer1.0-libav
-gstreamer1.0-alsa
-gstreamer1.0-pulseaudio
-simplescreenrecorder
-obs-studio
-audacity
-gimp
-inkscape
-kdenlive
-
-# --- Office ---
-libreoffice
-libreoffice-gtk3
-libreoffice-help-en-us
-fonts-crosextra-carlito
-
-# --- Internet ---
 firefox-esr
-firefox-esr-l10n-ar
-thunderbird
-thunderbird-l10n-ar
-transmission-gtk
-filezilla
-remmina
-remmina-plugin-vnc
-remmina-plugin-rdp
-
-# --- Archive / file ---
 file-roller
 p7zip-full
-unrar
-unzip
-zip
-
-# --- Terminal utils ---
-tilix
-tmux
-htop
-neofetch
-git
-git-gui
+zenity

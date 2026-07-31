@@ -190,6 +190,8 @@ jobs:
             --chroot-filesystem squashfs \
             --compression xz \
             --checksums sha256 \
+            --apt-recommends false \
+            --apt-source-archives false \
             --source false
 
           # Run the build

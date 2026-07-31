@@ -57,10 +57,9 @@ EOF
 mkdir -p /var/lib/flatpak
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
 
-# Pre-install a few core Flatpaks (the store will be ready to use immediately)
-echo "[OSLin] Pre-installing core Flatpak apps (Discord, Spotify)..."
-flatpak install -y --system flathub com.discordapp.Discord 2>/dev/null || true
-flatpak install -y --system flathub com.spotify.Client 2>/dev/null || true
+# NOTE: No pre-bundled Flatpaks - users install on demand via store (saves ~500MB)
+/opt/bauh-env/bin/pip cache purge 2>/dev/null || true
+rm -rf /root/.cache/pip /tmp/* 2>/dev/null || true
 
 echo "[OSLin] bauh store installed."
 exit 0

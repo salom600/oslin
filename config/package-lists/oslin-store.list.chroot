@@ -1,44 +1,15 @@
 # ============================================
-# OSLin - App Store & Package Management
+# OSLin - App Store (SLIM - ~80MB)
 # ============================================
-# Universal store: bauh (Flatpak + AppImage + Snap + AUR-like)
-
-# --- Flatpak (primary app distribution) ---
 flatpak
-flatpak-xdg-utils
-gnome-software
 gnome-software-plugin-flatpak
-python3-tk
-python3-pil
-
-# --- Snap (secondary) ---
-snapd
-
-# --- AppImage tools ---
-libfuse2
-
-# --- AppImagePool (AppImage store) - via flatpak later ---
-
-# --- Discover alternative ---
-plasma-discover
-plasma-discover-backend-flatpak
-
-# --- Python deps for bauh ---
 python3-pip
 python3-setuptools
-python3-wheel
 python3-venv
+python3-wheel
 python3-dbus
 python3-requests
 python3-colorama
 python3-yaml
-python3-packaging
-
-# --- Package tools ---
-apt-transport-https
-software-properties-common
+libfuse2
 gdebi
-synaptic
-aptitude
-
-# --- Default repos config ---

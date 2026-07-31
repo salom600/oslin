@@ -1,51 +1,7 @@
 # ============================================
-# OSLin - Games (pre-installed, lightweight selection)
+# OSLin - Games (SLIM - ~30MB)
 # ============================================
-
-# --- Native Linux games ---
-0ad
 aisleriot
-bsdgames
-bzflag
-chromium-bsu
-freeciv-client-gtk3
-freeciv-data
-freedoom
-gnuchess
-gnome-games
 gnome-mines
 gnome-sudoku
-gweled
-hedgewars
-lbreakout2
-lgeneral
-lincity-ng
-moon-buggy
-nethack-console
-nethack-x11
-peg-e
-pingus
-pybik
-supertux
-supertuxkart
-teeworlds
-wesnoth
-wesnoth-1.16-data
-wesnoth-1.16-music
-xboard
-xmahjongg
-xpenguins
-
-# --- Game emulators ---
-dosbox
-mednafen
-stella
-
-# --- Steam (install via Flatpak from Flathub; native installer needs i386 multiarch) ---
-# Steam will be available in the App Store (bauh) as a 1-click install.
-
-# --- Game tools ---
-lutris
-gamemode
-gamescope
-libgamemode0
+gnuchess
