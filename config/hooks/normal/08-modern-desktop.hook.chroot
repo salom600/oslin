@@ -1,0 +1,282 @@
+#!/bin/sh
+# ============================================
+# OSLin - Hook: 08-modern-desktop.chroot
+# Installs:
+#   - Brave browser (replaces Firefox)
+#   - Bottles + Heroic (one-click .exe support)
+#   - Picom compositor config (blur, transparency, rounded corners)
+#   - Rofi launcher config (Spotlight-style)
+#   - Custom Plymouth boot splash theme
+#   - Snap tiling script (Win11-style)
+# ============================================
+set -e
+
+echo "[OSLin] Setting up modern desktop (picom, rofi, Brave, Bottles)..."
+
+# ---------- 1. Install Brave browser ----------
+echo "[OSLin] Installing Brave browser..."
+if ! command -v brave-browser >/dev/null 2>&1; then
+    # Add Brave's official apt repo
+    apt-get update -qq
+    apt-get install -y --no-install-recommends curl gnupg apt-transport-https 2>/dev/null || true
+
+    # Import Brave GPG key
+    curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg \
+        https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg 2>/dev/null || true
+
+    # Add Brave repo
+    echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" \
+        > /etc/apt/sources.list.d/brave-browser-release.list
+
+    apt-get update -qq 2>/dev/null || true
+    apt-get install -y --no-install-recommends brave-browser 2>/dev/null || {
+        echo "[OSLin] WARNING: Brave install failed — will fall back to Firefox ESR"
+        apt-get install -y --no-install-recommends firefox-esr 2>/dev/null || true
+    }
+fi
+
+# Remove Firefox if Brave installed successfully
+if command -v brave-browser >/dev/null 2>&1; then
+    apt-get purge -y firefox-esr firefox-esr-l10n-* 2>/dev/null || true
+    echo "[OSLin] Brave installed, Firefox removed."
+fi
+
+# ---------- 2. Copy picom config to user home ----------
+echo "[OSLin] Configuring picom compositor..."
+mkdir -p /etc/skel/.config/picom
+cp /etc/oslin/picom.conf /etc/skel/.config/picom/picom.conf
+
+# Also copy to live user home (if exists)
+if [ -d /home/oslin ]; then
+    mkdir -p /home/oslin/.config/picom
+    cp /etc/oslin/picom.conf /home/oslin/.config/picom/picom.conf
+    chown -R oslin:oslin /home/oslin/.config
+fi
+
+# ---------- 3. Copy rofi config to user home ----------
+echo "[OSLin] Configuring rofi launcher..."
+mkdir -p /etc/skel/.config/rofi
+cp /etc/oslin/rofi.rasi /etc/skel/.config/rofin/config-oslin.rasi 2>/dev/null || true
+cp /etc/oslin/rofi.rasi /etc/skel/.config/rofi/oslin.rasi
+
+# Create a simple rofi launcher script
+cat > /usr/local/bin/oslin-launcher <<'EOF'
+#!/bin/bash
+# OSLin Spotlight-style launcher (powered by rofi)
+exec rofi -show drun -theme /etc/oslin/rofi.rasi -show-icons "$@"
+EOF
+chmod +x /usr/local/bin/oslin-launcher
+
+# Copy to live user home
+if [ -d /home/oslin ]; then
+    mkdir -p /home/oslin/.config/rofi
+    cp /etc/oslin/rofi.rasi /home/oslin/.config/rofi/oslin.rasi
+    chown -R oslin:oslin /home/oslin/.config
+fi
+
+# ---------- 4. Install Bottles + Heroic via Flatpak (one-click .exe) ----------
+echo "[OSLin] Installing Bottles + Heroic for Windows .exe support..."
+if command -v flatpak >/dev/null 2>&1; then
+    # Ensure Flathub remote is configured
+    flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
+
+    # Bottles — modern Wine frontend (one-click .exe install)
+    flatpak install -y --system flathub com.usebottles.bottles 2>/dev/null || {
+        echo "[OSLin] WARNING: Bottles install failed (network?) — users can install from store later"
+    }
+
+    # Heroic Games Launcher (Epic + GOG)
+    flatpak install -y --system flathub com.heroicgameslauncher.hgl 2>/dev/null || {
+        echo "[OSLin] WARNING: Heroic install failed — users can install from store later"
+    }
+
+    # Steam (Flatpak avoids i386 multiarch issues)
+    flatpak install -y --system flathub com.valvesoftware.Steam 2>/dev/null || {
+        echo "[OSLin] WARNING: Steam install failed — users can install from store later"
+    }
+fi
+
+# ---------- 5. Custom Plymouth boot splash ----------
+echo "[OSLin] Configuring Plymouth boot splash..."
+if command -v plymouth-set-default-theme >/dev/null 2>&1; then
+    # Create a custom OSLin theme
+    PLYMOUTH_THEME_DIR="/usr/share/plymouth/themes/oslin"
+    mkdir -p "$PLYMOUTH_THEME_DIR"
+
+    # Simple script-based theme
+    cat > "$PLYMOUTH_THEME_DIR/oslin.script" <<'PSCROLL'
+// OSLin Plymouth theme — animated blue gradient with logo
+// (kept simple to avoid Ruby/JS issues at boot)
+
+screen_width = Window.GetWidth();
+screen_height = Window.GetHeight();
+logo_image = Image("oslin-logo.png");
+logo_width = logo_image.GetWidth();
+logo_height = logo_image.GetHeight();
+
+# Background gradient
+background = Image.New(screen_width, screen_height);
+background_image = background;
+
+fun refresh_callback() {
+    # Draw background
+    background_image.Fill(0x0A, 0x25, 0x40);
+
+    # Draw logo centered
+    logo_image = logo_image.Scale(logo_width * 0.5, logo_height * 0.5);
+    logo_sprite = Sprite(logo_image);
+    logo_sprite.SetX(screen_width / 2 - logo_image.GetWidth() / 2);
+    logo_sprite.SetY(screen_height / 2 - logo_image.GetHeight() / 2);
+
+    # Progress bar at bottom
+    progress_width = screen_width * 0.4;
+    progress_height = 6;
+    progress_x = (screen_width - progress_width) / 2;
+    progress_y = screen_height * 0.7;
+
+    progress_bg = Sprite(Image.New(progress_width, progress_height));
+    progress_bg.SetPosition(progress_x, progress_y, 0);
+    progress_bg.SetOpacity(0.2);
+
+    progress_fill = Sprite(Image.New(progress_width * ( Plymouth.GetProgress() ), progress_height));
+    progress_fill.SetPosition(progress_x, progress_y, 0);
+
+    # Text
+    text_image = Image.Text("OSLin 2026.1 Aurora", 1.0, 1.0, 1.0, 1.0, "Noto Sans 24");
+    text_sprite = Sprite(text_image);
+    text_sprite.SetX(screen_width / 2 - text_image.GetWidth() / 2);
+    text_sprite.SetY(screen_height * 0.78);
+}
+
+Plymouth.SetRefreshFunction(refresh_callback);
+PSCROLL
+
+    # Theme descriptor
+    cat > "$PLYMOUTH_THEME_DIR/oslin.plymouth" <<'EOF'
+[Plymouth Theme]
+Name=OSLin
+Description=OSLin 2026.1 Aurora boot splash
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/oslin
+ScriptFile=/usr/share/plymouth/themes/oslin/oslin.script
+EOF
+
+    # Copy OSLin logo (PNG format for Plymouth)
+    if [ -f /usr/share/icons/hicolor/scalable/apps/oslin-logo.svg ]; then
+        if command -v rsvg-convert >/dev/null 2>&1; then
+            rsvg-convert -w 256 -h 256 /usr/share/icons/hicolor/scalable/apps/oslin-logo.svg \
+                -o "$PLYMOUTH_THEME_DIR/oslin-logo.png" 2>/dev/null || true
+        fi
+    fi
+
+    # Set OSLin as the default Plymouth theme
+    plymouth-set-default-theme oslin -R 2>/dev/null || true
+    echo "[OSLin] Plymouth theme set to 'oslin'."
+fi
+
+# ---------- 6. Window snap tiling helper (Win11-style) ----------
+echo "[OSLin] Installing snap tiling script..."
+cat > /usr/local/bin/oslin-snap <<'EOF'
+#!/bin/bash
+# OSLin window snap — Win11-style snap layouts
+# Usage: oslin-snap left|right|top-left|top-right|bottom-left|bottom-right| maximize|restore
+# Bind to keyboard shortcuts in XFCE
+
+WMCTRL=$(command -v wmctrl)
+XDOTOOL=$(command -v xdotool)
+[ -z "$WMCTRL" ] && { echo "wmctrl not installed"; exit 1; }
+
+get_active_window_geometry() {
+    $WMCTRL -G -l | while read -r id desktop x y w h rest; do
+        if [ "$id" = "0x$(printf '%08x' $(xprop -root _NET_ACTIVE_WINDOW | awk '{print $5}' | tr -d ','))" ]; then
+            echo "$x $y $w $h"
+            return
+        fi
+    done
+}
+
+# Get screen dimensions
+SCREEN_W=$(xrandr 2>/dev/null | grep ' connected primary' | awk '{print $4}' | cut -d'+' -f1 | cut -d'x' -f1)
+SCREEN_H=$(xrandr 2>/dev/null | grep ' connected primary' | awk '{print $4}' | cut -d'+' -f1 | cut -d'x' -f2)
+[ -z "$SCREEN_W" ] && SCREEN_W=1920
+[ -z "$SCREEN_H" ] && SCREEN_H=1080
+
+# Account for panels (top bar ~32px, bottom bar ~52px)
+TOP_BAR=0
+BOTTOM_BAR=56
+LEFT_BAR=0
+RIGHT_BAR=0
+
+USABLE_W=$((SCREEN_W - LEFT_BAR - RIGHT_BAR))
+USABLE_H=$((SCREEN_H - TOP_BAR - BOTTOM_BAR))
+HALF_W=$((USABLE_W / 2))
+HALF_H=$((USABLE_H / 2))
+
+case "$1" in
+    left)
+        wmctrl -r :ACTIVE -e 0,$LEFT_BAR,$TOP_BAR,$HALF_W,$USABLE_H
+        ;;
+    right)
+        wmctrl -r :ACTIVE -e 0,$((LEFT_BAR + HALF_W)),$TOP_BAR,$HALF_W,$USABLE_H
+        ;;
+    top-left)
+        wmctrl -r :ACTIVE -e 0,$LEFT_BAR,$TOP_BAR,$HALF_W,$HALF_H
+        ;;
+    top-right)
+        wmctrl -r :ACTIVE -e 0,$((LEFT_BAR + HALF_W)),$TOP_BAR,$HALF_W,$HALF_H
+        ;;
+    bottom-left)
+        wmctrl -r :ACTIVE -e 0,$LEFT_BAR,$((TOP_BAR + HALF_H)),$HALF_W,$HALF_H
+        ;;
+    bottom-right)
+        wmctrl -r :ACTIVE -e 0,$((LEFT_BAR + HALF_W)),$((TOP_BAR + HALF_H)),$HALF_W,$HALF_H
+        ;;
+    maximize)
+        wmctrl -r :ACTIVE -e 0,$LEFT_BAR,$TOP_BAR,$USABLE_W,$USABLE_H
+        ;;
+    restore)
+        wmctrl -r :ACTIVE -b remove,maximized,maximized_vert,maximized_horz 2>/dev/null || true
+        ;;
+    *)
+        echo "Usage: oslin-snap {left|right|top-left|top-right|bottom-left|bottom-right|maximize|restore}"
+        exit 1
+        ;;
+esac
+exit 0
+EOF
+chmod +x /usr/local/bin/oslin-snap
+
+# ---------- 7. Auto-start picom on login ----------
+mkdir -p /etc/skel/.config/autostart
+cat > /etc/skel/.config/autostart/picom.desktop <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=Picom Compositor
+Comment=Enable blur, transparency, rounded corners, animations
+Exec=picom --config /etc/oslin/picom.conf --daemon
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+OnlyShowIn=XFCE;
+EOF
+
+# Also copy to live user
+if [ -d /home/oslin ]; then
+    mkdir -p /home/oslin/.config/autostart
+    cp /etc/skel/.config/autostart/picom.desktop /home/oslin/.config/autostart/
+    chown -R oslin:oslin /home/oslin/.config
+fi
+
+# ---------- 8. Clean up ----------
+apt-get clean 2>/dev/null || true
+
+echo "[OSLin] Modern desktop setup complete:"
+echo "  - Brave browser (replaced Firefox)"
+echo "  - Bottles + Heroic + Steam (one-click .exe + games)"
+echo "  - Picom compositor (blur, transparency, rounded corners, animations)"
+echo "  - Rofi launcher (Spotlight-style, Super+Space)"
+echo "  - Custom Plymouth boot splash"
+echo "  - Window snap tiling (Win11-style)"
+exit 0

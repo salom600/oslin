@@ -74,8 +74,20 @@ jobs:
             "config/common"
             "config/package-lists/oslin-base.list.chroot"
             "config/package-lists/oslin-desktop.list.chroot"
+            "config/package-lists/oslin-games.list.chroot"
+            "config/package-lists/oslin-store.list.chroot"
+            "config/package-lists/oslin-tools.list.chroot"
+            "config/package-lists/oslin-installer.list.chroot"
             "config/hooks/normal/01-setup-user.hook.chroot"
+            "config/hooks/normal/02-install-themes.hook.chroot"
+            "config/hooks/normal/03-install-bauh-store.hook.chroot"
             "config/hooks/normal/04-xfce-customization.hook.chroot"
+            "config/hooks/normal/05-installer-setup.hook.chroot"
+            "config/hooks/normal/06-final-polish.hook.chroot"
+            "config/hooks/normal/07-grub-menu.hook.chroot"
+            "config/hooks/normal/08-modern-desktop.hook.chroot"
+            "config/includes.chroot/etc/oslin/picom.conf"
+            "config/includes.chroot/etc/oslin/rofi.rasi"
           )
           for f in "${REQUIRED[@]}"; do
             if [ ! -f "$f" ]; then

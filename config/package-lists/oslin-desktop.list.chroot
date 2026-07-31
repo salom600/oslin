@@ -1,6 +1,9 @@
 # ============================================
-# OSLin - Desktop Environment (SLIM - ~300MB)
+# OSLin - Desktop Environment (SUPERCHARGED - ~400MB)
+# XFCE + picom + rofi = modern, animated, unique feel
 # ============================================
+
+# --- XFCE core (kept — stable, lightweight base) ---
 xfce4
 xfce4-terminal
 xfce4-settings
@@ -13,6 +16,11 @@ xfce4-taskmanager
 xfce4-whiskermenu-plugin
 xfce4-cpugraph-plugin
 xfce4-pulseaudio-plugin
+xfce4-netload-plugin
+xfce4-systemload-plugin
+xfce4-places-plugin
+xfce4-genmon-plugin
+xfce4-docklike-plugin
 xfwm4
 thunar
 thunar-archive-plugin
@@ -20,8 +28,12 @@ thunar-volman
 tumbler
 mousepad
 ristretto
+
+# --- Display manager ---
 lightdm
 lightdm-gtk-greeter
+
+# --- X server ---
 xserver-xorg
 xserver-xorg-video-all
 xserver-xorg-video-amdgpu
@@ -31,9 +43,8 @@ xserver-xorg-video-nouveau
 xserver-xorg-video-vesa
 x11-xserver-utils
 xauth
-# --- Mesa open-source GL stack (pre-installed so desktop works offline) ---
-# These provide hardware-accelerated OpenGL/Vulkan for ALL GPUs
-# without needing internet on first boot.
+
+# --- Mesa open-source GL stack (desktop works offline) ---
 mesa-va-drivers
 mesa-vulkan-drivers
 libgl1-mesa-dri
@@ -42,17 +53,36 @@ libgl1
 libegl1
 libegl-mesa0
 vulkan-tools
+
+# --- 🎨 PICOM compositor (the magic — blur, transparency, animations) ---
+picom
+# Custom picom fork with rounded corners + blur (jonaburg fork is widely used)
+# We'll use the Debian picom + custom config for blur/transparency
+
+# --- 🚀 ROFI (Spotlight-style modern launcher) ---
+rofi
+# Custom OSLin rofi theme will be installed via hook
+
+# --- Audio ---
 pulseaudio
 pavucontrol
 alsa-utils
+
+# --- Network ---
 network-manager
 network-manager-gnome
 wpasupplicant
+
+# --- Bluetooth ---
 bluez
 blueman
+
+# --- Themes / engines ---
 gtk2-engines-murrine
 gtk2-engines-pixbuf
 papirus-icon-theme
+
+# --- Fonts (multilingual) ---
 fonts-noto-core
 fonts-noto-ui-core
 fonts-noto-mono
@@ -60,13 +90,34 @@ fonts-dejavu-core
 fonts-liberation2
 fonts-kacst
 fonts-hosny-amiri
-firefox-esr
+
+# --- 🌐 Brave browser (replaces Firefox) ---
+# Installed via hook from Brave's official apt repo
+# (Brave is not in Debian repos — we add the signing key + repo at build time)
+
+# --- File archiver ---
 file-roller
 p7zip-full
+
+# --- GUI dialogs ---
 zenity
-# --- Notification daemon (for desktop notifications from hw-detect etc.) ---
+
+# --- Notification daemon ---
 libnotify-bin
 notify-osd
-# --- Image tools (for SVG→PNG conversion at build time + runtime) ---
+
+# --- Image tools (SVG→PNG conversion) ---
 librsvg2-bin
 imagemagick
+
+# --- 🎮 Plymouth boot splash (custom OSLin theme) ---
+plymouth
+plymouth-themes
+plymouth-x11
+
+# --- 🪟 Window snap tiling helper (Win11-style snap) ---
+# xfdashboard gives an expose/mission-control view
+xfdashboard
+wmctrl
+xdotool
+x11-utils
