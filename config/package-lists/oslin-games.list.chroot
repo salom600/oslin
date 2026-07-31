@@ -5,7 +5,6 @@
 
 # --- Wine (run Windows .exe files) ---
 wine
-wine32
 wine64
 libwine
 fonts-wine
