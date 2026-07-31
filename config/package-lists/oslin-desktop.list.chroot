@@ -115,7 +115,7 @@ plymouth-themes
 plymouth-x11
 
 # --- 🪟 Window snap tiling helper (Win11-style snap) ---
-# xfdashboard gives an expose/mission-control view
+# wmctrl + xdotool used by oslin-snap script
 wmctrl
 xdotool
 x11-utils

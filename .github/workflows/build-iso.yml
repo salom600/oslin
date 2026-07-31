@@ -467,18 +467,28 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const ref = '${{ github.ref_name }}';
+            console.log(`Waiting 10s for push to propagate...`);
+            await new Promise(r => setTimeout(r, 10000));
+
             console.log(`Triggering retry build on ${ref}...`);
-            const wf = await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'build-iso.yml',
-              ref: ref,
-              inputs: {
-                debug: 'false',
-                skip_cache: 'false'
-              }
-            });
-            console.log(`Retry workflow dispatched: ${wf.data.id}`);
+            try {
+              const wf = await github.rest.actions.createWorkflowDispatch({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'build-iso.yml',
+                ref: ref,
+                inputs: {
+                  debug: 'false',
+                  skip_cache: 'false'
+                }
+              });
+              console.log(`✅ Retry workflow dispatched successfully`);
+            } catch (error) {
+              console.error(`❌ Failed to dispatch retry: ${error.message}`);
+              console.log(`The fix has been committed. A new push or manual trigger will pick it up.`);
+              // Don't fail the job — the fix is already committed
+              // A subsequent push or manual run will use the fixed code
+            }
 
   # ============================================================
   # STAGE 4: Release (only on tags / manual)

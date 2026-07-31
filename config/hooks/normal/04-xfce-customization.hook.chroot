@@ -172,7 +172,7 @@ cat > "$XFCE_DIR/xfconf/xfce-perchannel-xml/xfce4-panel.xml" <<'EOF'
         <property name="plugin-7" type="string" value="systray"/>
         <property name="plugin-8" type="string" value="pulseaudio"/>
         <property name="plugin-9" type="string" value="netload"/>
-        <property name="plugin-10" type="string" value="power-manager-plugin"/>
+        <property name="plugin-10" type="string" value="power-manager"/>
         <property name="plugin-11" type="string" value="clock"/>
         <property name="plugin-12" type="string" value="actions"/>
       </property>
@@ -402,8 +402,8 @@ cat > "$XFCE_DIR/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml" <<'EOF
       <property name="&lt;Control&gt;&lt;Super&gt;Down" type="string" value="oslin-snap bottom-left"/>
       <property name="&lt;Control&gt;&lt;Alt&gt;&lt;Super&gt;Right" type="string" value="oslin-snap bottom-right"/>
 
-      <!-- Mission Control / Expose (xfdashboard) -->
-      <property name="&lt;Super&gt;q" type="string" value="xfdashboard"/>
+      <!-- Mission Control / Expose (xfce4-appfinder --collapsed) -->
+      <property name="&lt;Super&gt;q" type="string" value="xfce4-appfinder --collapsed"/>
 
       <!-- Multimedia / system keys -->
       <property name="XF86Display" type="string" value="xfdisplay-switch"/>
