@@ -24,7 +24,6 @@ default-jdk
 default-jre
 
 # --- Editors ---
-code
 vim
 neovim
 emacs
@@ -73,7 +72,6 @@ ripgrep
 tldr
 glances
 neofetch
-fastfetch
 inxi
 hardinfo
 
@@ -89,7 +87,6 @@ wget2
 
 # --- Security ---
 keepassxc
-veracrypt
 cryptsetup
 seahorse
 gnupg2

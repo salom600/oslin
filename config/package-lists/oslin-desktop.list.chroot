@@ -16,7 +16,6 @@ xfce4-fsguard-plugin
 xfce4-genmon-plugin
 xfce4-mailwatch-plugin
 xfce4-netload-plugin
-xfce4-notes-plugin
 xfce4-notifyd
 xfce4-panel
 xfce4-places-plugin
@@ -36,7 +35,6 @@ xfce4-weather-plugin
 xfce4-whiskermenu-plugin
 xfce4-xkb-plugin
 xfwm4
-xfwm4-themes
 thunar
 thunar-archive-plugin
 thunar-media-tags-plugin
@@ -103,7 +101,6 @@ gtk2-engines-murrine
 gtk2-engines-pixbuf
 gtk3-engines-breeze
 qt5-style-plugins
-kvantum
 libqt5svg5
 
 # --- Fonts (good multilingual coverage incl Arabic) ---
@@ -170,6 +167,5 @@ tilix
 tmux
 htop
 neofetch
-fastfetch
 git
 git-gui

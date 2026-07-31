@@ -15,7 +15,6 @@ python3-pil
 snapd
 
 # --- AppImage tools ---
-appimage-launcher
 libfuse2
 
 # --- AppImagePool (AppImage store) - via flatpak later ---
@@ -43,4 +42,3 @@ synaptic
 aptitude
 
 # --- Default repos config ---
-flatpak-remote-add

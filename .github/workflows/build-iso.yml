@@ -281,7 +281,8 @@ jobs:
 
           if [ -z "$LOG_FILE" ] || [ ! -f "$LOG_FILE" ]; then
             echo "::error::No build log found for analysis"
-            echo "fix_applied=false" >> $GITHUB_OUTPUT
+            echo "fix_applied=false" >> "$GITHUB_OUTPUT"
+            echo "fix_description=none" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -293,52 +294,75 @@ jobs:
           FIX_DESCRIPTION="none"
           FIX_APPLIED="false"
 
-          # Pattern 1: Missing package (404 from apt)
-          if grep -qiE 'E: Unable to locate package|404.*Not Found|E: Failed to fetch' "$LOG_FILE"; then
-            MISSING=$(grep -oE 'E: Unable to locate package [^ ]+' "$LOG_FILE" | awk '{print $NF}' | sort -u | head -10)
-            echo "::warning::Missing packages detected: $MISSING"
-            # Remove missing packages from the lists
+          # Pattern 1: Missing/unavailable packages
+          # Captures BOTH "Unable to locate package X" and "Package 'X' has no installation candidate"
+          MISSING_LOCATE=$(grep -oE 'E: Unable to locate package [^ ]+' "$LOG_FILE" 2>/dev/null | awk '{print $NF}' | sort -u)
+          MISSING_CANDIDATE=$(grep -oE "E: Package '[^']+' has no installation candidate" "$LOG_FILE" 2>/dev/null | sed -E "s/E: Package '([^']+)' .*/\1/" | sort -u)
+          MISSING_GLOB=$(grep -oE "E: Couldn't find any package by glob '([^']+)'" "$LOG_FILE" 2>/dev/null | sed -E "s/.*glob '([^']+)'.*/\1/" | sort -u)
+          MISSING=$(printf "%s\n%s\n%s\n" "$MISSING_LOCATE" "$MISSING_CANDIDATE" "$MISSING_GLOB" | grep -v '^$' | sort -u)
+
+          if [ -n "$MISSING" ]; then
+            MISSING_COUNT=$(echo "$MISSING" | wc -l)
+            MISSING_FLAT=$(echo "$MISSING" | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ //;s/ $//')
+            echo "::warning::Missing packages detected ($MISSING_COUNT): $MISSING_FLAT"
+            # Remove each missing package from all package lists (whole-line match)
             for pkg in $MISSING; do
-              echo "Removing missing package: $pkg"
-              sed -i "/^${pkg}$/d" config/package-lists/*.list.chroot 2>/dev/null || true
+              [ -z "$pkg" ] && continue
+              echo "Removing unavailable package: $pkg"
+              sed -i "/^${pkg}$/d; /^${pkg} /d" config/package-lists/*.list.chroot 2>/dev/null || true
             done
-            FIX_DESCRIPTION="Removed unavailable packages: $MISSING"
+            FIX_DESCRIPTION="Removed ${MISSING_COUNT} unavailable packages: ${MISSING_FLAT}"
             FIX_APPLIED="true"
           fi
 
           # Pattern 2: Hook failed (chmod, file not found)
           if grep -qiE 'hook.*failed|No such file or directory.*hook' "$LOG_FILE"; then
             echo "::warning::Hook failure detected"
-            # Ensure all hooks are executable
             chmod +x config/hooks/normal/*.hook.chroot config/hooks/live/*.hook.chroot 2>/dev/null || true
-            FIX_DESCRIPTION="${FIX_DESCRIPTION}; Made all hooks executable"
-            FIX_APPLIED="true"
+            if [ "$FIX_APPLIED" = "true" ]; then
+              FIX_DESCRIPTION="${FIX_DESCRIPTION}; Made all hooks executable"
+            else
+              FIX_DESCRIPTION="Made all hooks executable"
+              FIX_APPLIED="true"
+            fi
           fi
 
           # Pattern 3: Network timeout during git clone in hooks
           if grep -qiE 'fatal:.*Could not read|Connection timed out|Could not resolve host' "$LOG_FILE"; then
             echo "::warning::Network failures detected in hooks"
-            # Add retry logic to git clones
             for hook in config/hooks/normal/*.hook.chroot; do
               if grep -q 'git clone' "$hook" 2>/dev/null; then
-                # Wrap with retry already in place via || true
-                if ! grep -q 'retry' "$hook" 2>/dev/null; then
-                  sed -i 's|git clone --depth=1|git clone --depth=1 --retry=3|g' "$hook" 2>/dev/null || true
+                if ! grep -q -- '--retry' "$hook" 2>/dev/null; then
+                  sed -i 's|git clone --depth=1 |git clone --depth=1 --retry=3 |g' "$hook" 2>/dev/null || true
                 fi
               fi
             done
-            FIX_DESCRIPTION="${FIX_DESCRIPTION}; Added git retry to theme installs"
-            FIX_APPLIED="true"
+            if [ "$FIX_APPLIED" = "true" ]; then
+              FIX_DESCRIPTION="${FIX_DESCRIPTION}; Added git retry to theme installs"
+            else
+              FIX_DESCRIPTION="Added git retry to theme installs"
+              FIX_APPLIED="true"
+            fi
           fi
 
           # Pattern 4: Disk space
           if grep -qiE 'No space left on device|disk full' "$LOG_FILE"; then
             echo "::error::Disk space issue - cannot auto-fix, needs workflow change"
-            FIX_DESCRIPTION="${FIX_DESCRIPTION}; Disk space issue (manual fix needed)"
+            if [ "$FIX_APPLIED" = "true" ]; then
+              FIX_DESCRIPTION="${FIX_DESCRIPTION}; Disk space issue (manual fix needed)"
+            else
+              FIX_DESCRIPTION="Disk space issue (manual fix needed)"
+              FIX_APPLIED="true"
+            fi
           fi
 
-          echo "fix_applied=$FIX_APPLIED" >> $GITHUB_OUTPUT
-          echo "fix_description=$FIX_DESCRIPTION" >> $GITHUB_OUTPUT
+          # Write outputs using HEREDOC to safely handle multi-line values
+          {
+            echo "fix_applied=$FIX_APPLIED"
+            echo "fix_description<<EOF_FIX_DESC"
+            echo "$FIX_DESCRIPTION"
+            echo "EOF_FIX_DESC"
+          } >> "$GITHUB_OUTPUT"
           echo "::notice::Auto-repair analysis: $FIX_DESCRIPTION"
 
       - name: 💾 Commit & push fixes (if any)
