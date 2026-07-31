@@ -371,6 +371,61 @@ jobs:
             fi
           fi
 
+          # Pattern 4b: Missing group in useradd (common after removing cups/sane)
+          # "useradd: group 'lpadmin' does not exist"
+          if grep -qiE "useradd: group '[^']+' does not exist" "$LOG_FILE"; then
+            echo "::warning::Missing group in useradd detected"
+            MISSING_GROUPS=$(grep -oE "useradd: group '[^']+' does not exist" "$LOG_FILE" 2>/dev/null | sed -E "s/.*group '([^']+)'.*/\1/" | sort -u)
+            echo "::warning::Missing groups: $MISSING_GROUPS"
+            # Patch 01-setup-user.hook.chroot to filter groups that don't exist
+            HOOK="config/hooks/normal/01-setup-user.hook.chroot"
+            if [ -f "$HOOK" ] && ! grep -q "getent group" "$HOOK"; then
+              python3 - <<'PYEOF'
+import re
+hook_path = "config/hooks/normal/01-setup-user.hook.chroot"
+with open(hook_path, 'r') as f:
+    content = f.read()
+# Replace the simple useradd line with a group-filtering version
+old = "useradd -m -s /bin/bash -G sudo,adm,cdrom,audio,video,plugdev,netdev,bluetooth,lpadmin,scanner oslin"
+new = '''SUPP_GROUPS=""
+            for g in sudo adm cdrom audio video plugdev netdev bluetooth lpadmin scanner; do
+                if getent group "$g" >/dev/null 2>&1; then
+                    SUPP_GROUPS="${SUPP_GROUPS:+$SUPP_GROUPS,}$g"
+                fi
+            done
+            if [ -n "$SUPP_GROUPS" ]; then
+                useradd -m -s /bin/bash -G "$SUPP_GROUPS" oslin
+            else
+                useradd -m -s /bin/bash oslin
+            fi'''
+if old in content:
+                content = content.replace(old, new)
+                with open(hook_path, 'w') as f:
+                    f.write(content)
+                print("Hook patched for missing-group safety.")
+PYEOF
+              if [ "$FIX_APPLIED" = "true" ]; then
+                FIX_DESCRIPTION="${FIX_DESCRIPTION}; Patched useradd to filter missing groups"
+              else
+                FIX_DESCRIPTION="Patched useradd to filter missing groups ($MISSING_GROUPS)"
+                FIX_APPLIED="true"
+              fi
+            fi
+          fi
+
+          # Pattern 4c: Hook script failed (set -e exit non-zero)
+          # Generic: identify which hook failed and check for the most common
+          # 'does not exist' / 'not found' / 'command not found' patterns
+          if grep -qiE 'hook.*failed.*exit non-zero' "$LOG_FILE"; then
+            FAILED_HOOK=$(grep -oE 'config/hooks/[a-z/]+/[0-9]+-[a-z-]+\.hook\.[a-z]+' "$LOG_FILE" 2>/dev/null | sort -u | head -1)
+            echo "::warning::Hook failed: $FAILED_HOOK"
+            # Common cause: missing command in chroot
+            if grep -qiE 'command not found' "$LOG_FILE"; then
+              MISSING_CMDS=$(grep -oE '([a-z][a-z0-9._-]+): command not found' "$LOG_FILE" 2>/dev/null | sed 's/:.*//' | sort -u)
+              echo "::warning::Missing commands: $MISSING_CMDS"
+            fi
+          fi
+
           # Pattern 5: Disk space
           if grep -qiE 'No space left on device|disk full' "$LOG_FILE"; then
             echo "::error::Disk space issue - cannot auto-fix, needs workflow change"

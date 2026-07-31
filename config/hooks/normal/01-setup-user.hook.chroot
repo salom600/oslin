@@ -10,8 +10,19 @@ echo "[OSLin] Setting up default user 'oslin'..."
 
 # Create the oslin user with password 'oslin' (auto-login)
 # Users can change it after install
+# Only add groups that exist (cups/printer/scanner may be missing in slim build)
 if ! id oslin >/dev/null 2>&1; then
-    useradd -m -s /bin/bash -G sudo,adm,cdrom,audio,video,plugdev,netdev,bluetooth,lpadmin,scanner oslin
+    SUPP_GROUPS=""
+    for g in sudo adm cdrom audio video plugdev netdev bluetooth lpadmin scanner; do
+        if getent group "$g" >/dev/null 2>&1; then
+            SUPP_GROUPS="${SUPP_GROUPS:+$SUPP_GROUPS,}$g"
+        fi
+    done
+    if [ -n "$SUPP_GROUPS" ]; then
+        useradd -m -s /bin/bash -G "$SUPP_GROUPS" oslin
+    else
+        useradd -m -s /bin/bash oslin
+    fi
     echo "oslin:oslin" | chpasswd
 fi
 
