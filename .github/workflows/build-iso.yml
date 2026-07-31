@@ -380,30 +380,7 @@ jobs:
             # Patch 01-setup-user.hook.chroot to filter groups that don't exist
             HOOK="config/hooks/normal/01-setup-user.hook.chroot"
             if [ -f "$HOOK" ] && ! grep -q "getent group" "$HOOK"; then
-              python3 - <<'PYEOF'
-import re
-hook_path = "config/hooks/normal/01-setup-user.hook.chroot"
-with open(hook_path, 'r') as f:
-    content = f.read()
-# Replace the simple useradd line with a group-filtering version
-old = "useradd -m -s /bin/bash -G sudo,adm,cdrom,audio,video,plugdev,netdev,bluetooth,lpadmin,scanner oslin"
-new = '''SUPP_GROUPS=""
-            for g in sudo adm cdrom audio video plugdev netdev bluetooth lpadmin scanner; do
-                if getent group "$g" >/dev/null 2>&1; then
-                    SUPP_GROUPS="${SUPP_GROUPS:+$SUPP_GROUPS,}$g"
-                fi
-            done
-            if [ -n "$SUPP_GROUPS" ]; then
-                useradd -m -s /bin/bash -G "$SUPP_GROUPS" oslin
-            else
-                useradd -m -s /bin/bash oslin
-            fi'''
-if old in content:
-                content = content.replace(old, new)
-                with open(hook_path, 'w') as f:
-                    f.write(content)
-                print("Hook patched for missing-group safety.")
-PYEOF
+              python3 .github/scripts/patch-useradd-hook.py "$HOOK" || true
               if [ "$FIX_APPLIED" = "true" ]; then
                 FIX_DESCRIPTION="${FIX_DESCRIPTION}; Patched useradd to filter missing groups"
               else
