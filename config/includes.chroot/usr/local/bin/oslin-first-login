@@ -1,7 +1,6 @@
 #!/bin/bash
 # ============================================
-# OSLin - First Login Setup (LXQt/X11 version)
-# Runs on login to ensure configs are applied
+# OSLin - First Login Setup (Custom Shell version)
 # ============================================
 set -u
 
@@ -13,37 +12,34 @@ fi
 
 CONFIG_DIR="$HOME/.config"
 
-# ---------- 1. Ensure LXQt config exists ----------
-if [ ! -d "$CONFIG_DIR/lxqt" ]; then
-    echo "[OSLin] Installing LXQt config..."
-    mkdir -p "$CONFIG_DIR/lxqt"
-    [ -d /etc/skel/.config/lxqt ] && cp -r /etc/skel/.config/lxqt/* "$CONFIG_DIR/lxqt/"
-fi
-
-# ---------- 2. Ensure Openbox config exists ----------
-if [ ! -f "$CONFIG_DIR/openbox/lxqt-rc.xml" ]; then
-    echo "[OSLin] Installing Openbox config..."
+# ---------- 1. Ensure Openbox config ----------
+if [ ! -f "$CONFIG_DIR/openbox/rc.xml" ]; then
     mkdir -p "$CONFIG_DIR/openbox"
-    [ -f /etc/skel/.config/openbox/lxqt-rc.xml ] && cp /etc/skel/.config/openbox/lxqt-rc.xml "$CONFIG_DIR/openbox/"
+    [ -f /etc/oslin/shell/openbox/rc.xml ] && cp /etc/oslin/shell/openbox/rc.xml "$CONFIG_DIR/openbox/"
 fi
 
-# ---------- 3. Ensure autostart entries exist ----------
-if [ ! -d "$CONFIG_DIR/autostart" ]; then
-    mkdir -p "$CONFIG_DIR/autostart"
-    [ -d /etc/skel/.config/autostart ] && cp /etc/skel/.config/autostart/* "$CONFIG_DIR/autostart/"
+# ---------- 2. Ensure Polybar config ----------
+if [ ! -f "$CONFIG_DIR/polybar/config.ini" ]; then
+    mkdir -p "$CONFIG_DIR/polybar"
+    [ -f /etc/oslin/shell/polybar/config.ini ] && cp /etc/oslin/shell/polybar/config.ini "$CONFIG_DIR/polybar/"
 fi
 
-# ---------- 4. Ensure GTK config ----------
+# ---------- 3. Ensure Picom config ----------
+if [ ! -f "$CONFIG_DIR/picom/picom.conf" ]; then
+    mkdir -p "$CONFIG_DIR/picom"
+    [ -f /etc/oslin/shell/picom.conf ] && cp /etc/oslin/shell/picom.conf "$CONFIG_DIR/picom/"
+fi
+
+# ---------- 4. Ensure Rofi config ----------
+if [ ! -f "$CONFIG_DIR/rofi/oslin.rasi" ]; then
+    mkdir -p "$CONFIG_DIR/rofi"
+    [ -f /etc/oslin/shell/rofi/oslin.rasi ] && cp /etc/oslin/shell/rofi/oslin.rasi "$CONFIG_DIR/rofi/"
+fi
+
+# ---------- 5. Ensure GTK config ----------
 if [ ! -f "$CONFIG_DIR/gtk-3.0/settings.ini" ]; then
     mkdir -p "$CONFIG_DIR/gtk-3.0"
     [ -f /etc/skel/.config/gtk-3.0/settings.ini ] && cp /etc/skel/.config/gtk-3.0/settings.ini "$CONFIG_DIR/gtk-3.0/"
-fi
-
-# ---------- 5. Set wallpaper ----------
-if [ -f /usr/share/wallpapers/oslin/wallpaper-default.png ]; then
-    if command -v pcmanfm-qt >/dev/null 2>&1; then
-        pcmanfm-qt --set-wallpaper=/usr/share/wallpapers/oslin/wallpaper-default.png --wallpaper-mode=fill 2>/dev/null || true
-    fi
 fi
 
 # ---------- 6. Mark done ----------

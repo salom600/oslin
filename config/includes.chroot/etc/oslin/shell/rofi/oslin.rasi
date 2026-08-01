@@ -1,48 +1,27 @@
 // ============================================
-// OSLin Rofi Configuration
-// Spotlight-style app launcher with OSLin theme
+// OSLin Shell - Rofi Configuration (Spotlight launcher)
 // ============================================
-// Launch with: rofi -show drun -theme oslin
-// Or via the OSLin keyboard shortcut Super+Space
 
 configuration {
-    // Show running apps + all apps
     modes: [ drun, window, run ];
-
-    // Font
     font: "Noto Sans 13";
-
-    // Display
     show-icons: true;
     icon-theme: "WhiteSur";
     drun-display-format: "{name}";
-
-    // Behavior
     matching: "fuzzy";
     sort-method: "fuzzy";
     case-sensitive: false;
     cycle: true;
-    scroll-method: 1;
-
-    // Layout
     lines: 8;
     columns: 2;
     line-padding: 8;
     padding: 24;
     sidebar-mode: false;
-
-    // Search
-    timeout {
-        action: "cancel";
-        delay: 0;
-    }
 }
 
-// ─── OSLin Theme (frosted glass, modern) ───
 @theme "/dev/null"
 
 * {
-    // Colors (OSLin blue palette)
     bg:                  #0A2540;
     bg-alt:              #1E3A5F;
     fg:                  #FFFFFF;
@@ -52,20 +31,14 @@ configuration {
     border:              #2A4A6B;
     selected:            #0078D4;
     urgent:              #FF6B6B;
-
-    // Transparency (frosted glass)
     bg-trans:            rgba(10, 37, 64, 0.85);
     bg-alt-trans:        rgba(30, 58, 95, 0.80);
-
-    // Spacing
     spacing:             8px;
     padding:             12px;
-    margin:              0px;
     border-width:        1px;
     border-radius:       14px;
 }
 
-// Main window
 window {
     width: 640px;
     height: 480px;
@@ -76,14 +49,12 @@ window {
     transparency: "real";
 }
 
-// Main container
 mainbox {
     spacing: @spacing;
     padding: @padding;
     children: [ inputbar, listview ];
 }
 
-// Search bar
 inputbar {
     spacing: @spacing;
     padding: 16px 20px;
@@ -96,17 +67,14 @@ inputbar {
 prompt {
     text: "🔍";
     text-color: @accent;
-    font: "Noto Sans 14";
 }
 
 entry {
     placeholder: "Search apps...";
     placeholder-color: @fg-alt;
     text-color: @fg;
-    font: "Noto Sans 14";
 }
 
-// Results list
 listview {
     lines: 8;
     columns: 1;
@@ -118,7 +86,6 @@ listview {
     scrollbar: false;
 }
 
-// Each item
 element {
     orientation: horizontal;
     spacing: 12px;
@@ -130,29 +97,18 @@ element {
 
 element-icon {
     size: 32px;
-    margin: 0px 4px 0px 0px;
 }
 
 element-text {
     vertical-align: 0.5;
     text-color: @fg;
-    font: "Noto Sans 13";
 }
 
-// Hover / selected
 element selected.normal {
     background-color: @selected;
     text-color: @fg;
-    border-radius: 10px;
 }
 
-element selected.urgent {
-    background-color: @urgent;
-    text-color: @fg;
-}
-
-// Scrollbar (hidden by default)
 scrollbar {
     width: 0px;
-    border: 0px;
 }

@@ -1,0 +1,108 @@
+#!/bin/sh
+# ============================================
+# OSLin - Hook: 09-oslin-shell.chroot
+# Installs the custom OSLin Shell desktop
+# (Openbox + Polybar + Picom + Rofi — NOT a pre-built DE)
+# ============================================
+set -e
+
+echo "[OSLin] Setting up custom OSLin Shell desktop..."
+
+# ---------- 1. Copy Openbox config ----------
+mkdir -p /etc/oslin/shell/openbox
+cp /etc/oslin/shell/openbox/rc.xml /etc/oslin/shell/openbox/
+
+# Also install to system openbox config dir
+mkdir -p /etc/xdg/openbox
+cp /etc/oslin/shell/openbox/rc.xml /etc/xdg/openbox/
+
+# ---------- 2. Copy Polybar config ----------
+mkdir -p /etc/oslin/shell/polybar
+cp /etc/oslin/shell/polybar/config.ini /etc/oslin/shell/polybar/
+
+# ---------- 3. Copy Picom config ----------
+cp /etc/oslin/shell/picom.conf /etc/oslin/shell/
+
+# ---------- 4. Copy Rofi config ----------
+mkdir -p /etc/oslin/shell/rofi
+cp /etc/oslin/shell/rofi/oslin.rasi /etc/oslin/shell/rofi/
+
+# ---------- 5. Create OSLin Shell session entry ----------
+mkdir -p /usr/share/xsessions
+cat > /usr/share/xsessions/oslin.desktop <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=OSLin Shell
+Comment=OSLin custom modern desktop (Openbox + Polybar + Picom)
+Exec=/usr/local/bin/oslin-shell-session
+TryExec=/usr/local/bin/oslin-shell-session
+Icon=oslin-logo
+DesktopNames=OSLin;
+EOF
+
+# Remove any old session entries
+rm -f /usr/share/xsessions/xfce.desktop 2>/dev/null || true
+rm -f /usr/share/xsessions/lxqt.desktop 2>/dev/null || true
+rm -f /usr/share/xsessions/sway.desktop /usr/share/wayland-sessions/sway.desktop 2>/dev/null || true
+
+# ---------- 6. Set OSLin Shell as default in LightDM ----------
+if [ -f /etc/lightdm/lightdm.conf ]; then
+    sed -i 's/^user-session=.*/user-session=oslin/' /etc/lightdm/lightdm.conf 2>/dev/null || true
+    sed -i 's/^autologin-session=.*/autologin-session=oslin/' /etc/lightdm/lightdm.conf 2>/dev/null || true
+fi
+
+# ---------- 7. Copy configs to user skeleton ----------
+SKEL="/etc/skel/.config"
+mkdir -p "$SKEL/openbox" "$SKEL/polybar" "$SKEL/picom" "$SKEL/rofi"
+
+cp /etc/oslin/shell/openbox/rc.xml "$SKEL/openbox/"
+cp /etc/oslin/shell/polybar/config.ini "$SKEL/polybar/config.ini"
+cp /etc/oslin/shell/picom.conf "$SKEL/picom/picom.conf"
+cp /etc/oslin/shell/rofi/oslin.rasi "$SKEL/rofi/oslin.rasi"
+
+# ---------- 8. Copy to live user ----------
+if [ -d /home/oslin ]; then
+    USR="/home/oslin/.config"
+    mkdir -p "$USR/openbox" "$USR/polybar" "$USR/picom" "$USR/rofi"
+
+    cp /etc/oslin/shell/openbox/rc.xml "$USR/openbox/"
+    cp /etc/oslin/shell/polybar/config.ini "$USR/polybar/config.ini"
+    cp /etc/oslin/shell/picom.conf "$USR/picom/picom.conf"
+    cp /etc/oslin/shell/rofi/oslin.rasi "$USR/rofi/oslin.rasi"
+
+    chown -R oslin:oslin /home/oslin/.config
+fi
+
+# ---------- 9. GTK theme config ----------
+mkdir -p /etc/skel/.config/gtk-3.0
+cat > /etc/skel/.config/gtk-3.0/settings.ini <<'EOF'
+[Settings]
+gtk-theme-name=WhiteSur-Light
+gtk-icon-theme-name=WhiteSur
+gtk-font-name=Noto Sans 11
+gtk-cursor-theme-name=WhiteSur-cursors
+gtk-application-prefer-dark-theme=0
+gtk-enable-animations=1
+gtk-decoration-layout=close,minimize,maximize:menu
+EOF
+
+# ---------- 10. Ensure oslin user is in required groups ----------
+if id oslin >/dev/null 2>&1; then
+    for g in video audio input plugdev netdev bluetooth; do
+        getent group "$g" >/dev/null 2>&1 && usermod -aG "$g" oslin 2>/dev/null || true
+    done
+fi
+
+# ---------- 11. Create Pictures dir ----------
+mkdir -p /etc/skel/Pictures
+[ -d /home/oslin ] && mkdir -p /home/oslin/Pictures && chown oslin:oslin /home/oslin/Pictures
+
+echo "[OSLin] Custom OSLin Shell desktop setup complete:"
+echo "  - Openbox window manager (Win11-style snap shortcuts)"
+echo "  - Polybar custom status bar (bottom, transparent)"
+echo "  - Picom compositor (blur, transparency, rounded corners, animations)"
+echo "  - Rofi launcher (Spotlight-style, Super+Space)"
+echo "  - Nitrogen wallpaper manager"
+echo "  - Dunst notifications"
+echo "  - WhiteSur theme"
+exit 0

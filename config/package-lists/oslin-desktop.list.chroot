@@ -1,52 +1,28 @@
 # ============================================
-# OSLin - Desktop Environment (LXQt - lightweight, works on ALL hardware)
-# Replaces Sway (which failed on unknown GPUs) and XFCE
-# ~300MB total, ~250MB RAM idle, X11 (universal compatibility)
+# OSLin - Custom Shell (Openbox + Polybar + Picom + Rofi)
+# NOT a desktop environment — a custom-built modern shell
+# Works on ALL hardware (X11), ~50-80MB RAM for the shell
 # ============================================
 
-# ─── LXQt desktop (lightweight Qt-based DE) ───
-lxqt
-lxqt-core
-lxqt-admin
-lxqt-config
-lxqt-globalkeys
-lxqt-notificationd
-lxqt-openssh-askpass
-lxqt-panel
-lxqt-policykit
-lxqt-powermanagement
-lxqt-qtplugin
-lxqt-runner
-lxqt-session
-lxqt-sudo
-lxqt-themes
-
-# ─── Openbox (window manager for LXQt) ───
+# ─── Openbox: window manager (rock solid, works everywhere) ───
 openbox
-obconf-qt
+obconf
+# libxml2 for openbox config parsing (pulled automatically)
 
-# ─── PCManFM-Qt (file manager) ───
-pcmanfm-qt
-libfm-qt-dev
+# ─── Polybar: custom status bar (modern, animated, glass) ───
+polybar
 
-# ─── QTerminal (terminal emulator) ───
-qterminal
+# ─── Picom: compositor (blur, transparency, rounded corners, animations) ───
+picom
 
-# ─── FeatherPad (text editor) ───
-featherpad
+# ─── Rofi: Spotlight-style app launcher ───
+rofi
 
-# ─── Screenshot tool ───
-screengrab
+# ─── Nitrogen: wallpaper manager ───
+nitrogen
+feh
 
-# ─── Archiver ───
-file-roller
-p7zip-full
-
-# ─── Display manager ───
-lightdm
-lightdm-gtk-greeter
-
-# ─── X server (universal — works on ALL hardware) ───
+# ─── X server (universal — ALL hardware) ───
 xserver-xorg
 xserver-xorg-video-all
 xserver-xorg-video-amdgpu
@@ -60,8 +36,9 @@ xserver-xorg-video-vmware
 x11-xserver-utils
 xauth
 xinit
+x11-common
 
-# ─── Mesa GL (hardware accel, works without proprietary drivers) ───
+# ─── Mesa GL (hardware accel, no proprietary drivers needed) ───
 mesa-va-drivers
 mesa-vulkan-drivers
 libgl1-mesa-dri
@@ -69,6 +46,10 @@ libglx-mesa0
 libgl1
 libegl1
 libegl-mesa0
+
+# ─── Display manager ───
+lightdm
+lightdm-gtk-greeter
 
 # ─── Audio ───
 pulseaudio
@@ -84,12 +65,10 @@ wpasupplicant
 bluez
 blueman
 
-# ─── Themes ───
+# ─── Themes / icons ───
 gtk2-engines-murrine
 gtk2-engines-pixbuf
 papirus-icon-theme
-qt5-style-plugins
-adwaita-qt
 
 # ─── Fonts ───
 fonts-noto-core
@@ -99,15 +78,27 @@ fonts-dejavu-core
 fonts-liberation2
 fonts-kacst
 fonts-hosny-amiri
+fonts-font-awesome
+
+# ─── File manager + terminal + editor ───
+thunar
+thunar-archive-plugin
+thunar-volman
+tumbler
+xfce4-terminal
+mousepad
+ristretto
+file-roller
+p7zip-full
 
 # ─── GUI dialogs ───
 zenity
 
 # ─── Notifications ───
 libnotify-bin
-notify-osd
+dunst
 
-# ─── Image tools ───
+# ─── Image tools (SVG→PNG) ───
 librsvg2-bin
 imagemagick
 
@@ -119,3 +110,11 @@ plymouth-x11
 # ─── Window snap helper ───
 wmctrl
 xdotool
+
+# ─── Polkit (for GUI sudo) ───
+policykit-1
+policykit-1-gnome
+
+# ─── XDG utils (for default apps) ───
+xdg-utils
+desktop-file-utils

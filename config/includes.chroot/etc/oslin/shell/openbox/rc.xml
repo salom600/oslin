@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ============================================
+     OSLin Shell - Openbox Configuration
+     Win11-style snap shortcuts, WhiteSur theme
+     ============================================ -->
+<openbox_config xmlns="http://openbox.org/3.4/rc">
+
+  <resistance>
+    <strength>10</strength>
+    <screen_edge_strength>20</screen_edge_strength>
+  </resistance>
+
+  <focus>
+    <focusNew>yes</focusNew>
+    <focusLast>yes</focusLast>
+    <followMouse>no</followMouse>
+    <focusDelay>0</focusDelay>
+    <raiseOnFocus>no</raiseOnFocus>
+  </focus>
+
+  <theme>
+    <name>WhiteSur-Light</name>
+    <titleLayout>NLIMC</titleLayout>
+    <keepBorder>yes</keepBorder>
+    <animateIconify>yes</animateIconify>
+    <font place="ActiveWindow">
+      <name>Noto Sans</name>
+      <size>11</size>
+      <weight>Bold</weight>
+      <slant>Normal</slant>
+    </font>
+    <font place="InactiveWindow">
+      <name>Noto Sans</name>
+      <size>11</size>
+      <weight>Normal</weight>
+      <slant>Normal</slant>
+    </font>
+  </theme>
+
+  <desktops>
+    <number>4</number>
+    <firstdesk>1</firstdesk>
+    <names>
+      <name>1: Web</name>
+      <name>2: Files</name>
+      <name>3: Terminal</name>
+      <name>4: Media</name>
+    </names>
+    <popupTime>875</popupTime>
+  </desktops>
+
+  <resize>
+    <drawContents>yes</drawContents>
+    <popupShow>Nonpixel</popupShow>
+    <popupPosition>Center</popupPosition>
+  </resize>
+
+  <margins>
+    <top>0</top>
+    <bottom>44</bottom>
+    <left>0</left>
+    <right>0</right>
+  </margins>
+
+  <keyboard>
+    <!-- Window snap (Win11-style) -->
+    <keybind key="W-Left">
+      <action name="UnmaximizeFull"/>
+      <action name="MoveResizeTo">
+        <x>0</x>
+        <y>0</y>
+        <width>50%</width>
+        <height>100%</height>
+      </action>
+    </keybind>
+    <keybind key="W-Right">
+      <action name="UnmaximizeFull"/>
+      <action name="MoveResizeTo">
+        <x>-0</x>
+        <y>0</y>
+        <width>50%</width>
+        <height>100%</height>
+      </action>
+    </keybind>
+    <keybind key="W-Up">
+      <action name="MaximizeFull"/>
+    </keybind>
+    <keybind key="W-Down">
+      <action name="UnmaximizeFull"/>
+    </keybind>
+
+    <!-- Quarter snap -->
+    <keybind key="C-W-Left">
+      <action name="UnmaximizeFull"/>
+      <action name="MoveResizeTo"><x>0</x><y>0</y><width>50%</width><height>50%</height></action>
+    </keybind>
+    <keybind key="C-W-Right">
+      <action name="UnmaximizeFull"/>
+      <action name="MoveResizeTo"><x>-0</x><y>0</y><width>50%</width><height>50%</height></action>
+    </keybind>
+    <keybind key="C-W-Up">
+      <action name="UnmaximizeFull"/>
+      <action name="MoveResizeTo"><x>0</x><y>0</y><width>50%</width><height>50%</height></action>
+    </keybind>
+
+    <!-- App shortcuts -->
+    <keybind key="W-d">
+      <action name="Execute"><command>thunar</command></action>
+    </keybind>
+    <keybind key="W-t">
+      <action name="Execute"><command>xfce4-terminal</command></action>
+    </keybind>
+    <keybind key="W-b">
+      <action name="Execute"><command>brave-browser</command></action>
+    </keybind>
+    <keybind key="W-s">
+      <action name="Execute"><command>oslin-store</command></action>
+    </keybind>
+    <keybind key="W-i">
+      <action name="Execute"><command>oslin-control-center</command></action>
+    </keybind>
+    <keybind key="W-h">
+      <action name="Execute"><command>oslin-hw-info</command></action>
+    </keybind>
+    <keybind key="W-space">
+      <action name="Execute"><command>rofi -show drun -theme /etc/oslin/shell/rofi/oslin.rasi</command></action>
+    </keybind>
+    <keybind key="W-Tab">
+      <action name="Execute"><command>rofi -show window -theme /etc/oslin/shell/rofi/oslin.rasi</command></action>
+    </keybind>
+
+    <!-- Desktop switching -->
+    <keybind key="C-A-Left"><action name="DesktopLeft"><wrap>yes</wrap></action></keybind>
+    <keybind key="C-A-Right"><action name="DesktopRight"><wrap>yes</wrap></action></keybind>
+    <keybind key="W-F1"><action name="Desktop"><desktop>1</desktop></action></keybind>
+    <keybind key="W-F2"><action name="Desktop"><desktop>2</desktop></action></keybind>
+    <keybind key="W-F3"><action name="Desktop"><desktop>3</desktop></action></keybind>
+    <keybind key="W-F4"><action name="Desktop"><desktop>4</desktop></action></keybind>
+
+    <!-- Window management -->
+    <keybind key="A-F4"><action name="Close"/></keybind>
+    <keybind key="A-Escape"><action name="Lower"/><action name="FocusToBottom"/><action name="Unfocus"/></keybind>
+    <keybind key="A-space"><action name="ShowMenu"><menu>client-menu</menu></action></keybind>
+    <keybind key="A-Tab"><action name="NextWindow"/></keybind>
+    <keybind key="A-S-Tab"><action name="PreviousWindow"/></keybind>
+
+    <!-- Session -->
+    <keybind key="C-A-Delete">
+      <action name="Execute"><command>rofi -show power-menu -theme /etc/oslin/shell/rofi/power.rasi</command></action>
+    </keybind>
+    <keybind key="W-l">
+      <action name="Execute"><command>xlock -mode blank</command></action>
+    </keybind>
+
+    <!-- Volume keys -->
+    <keybind key="XF86AudioRaiseVolume"><action name="Execute"><command>pactl set-sink-volume @DEFAULT_SINK@ +5%</command></action></keybind>
+    <keybind key="XF86AudioLowerVolume"><action name="Execute"><command>pactl set-sink-volume @DEFAULT_SINK@ -5%</command></action></keybind>
+    <keybind key="XF86AudioMute"><action name="Execute"><command>pactl set-sink-mute @DEFAULT_SINK@ toggle</command></action></keybind>
+
+    <!-- Brightness keys -->
+    <keybind key="XF86MonBrightnessUp"><action name="Execute"><command>xrandr --output $(xrandr | grep ' connected' | head -1 | cut -d' ' -f1) --brightness 1.0</command></action></keybind>
+    <keybind key="XF86MonBrightnessDown"><action name="Execute"><command>xrandr --output $(xrandr | grep ' connected' | head -1 | cut -d' ' -f1) --brightness 0.7</command></action></keybind>
+
+    <!-- Screenshot -->
+    <keybind key="Print"><action name="Execute"><command>xfce4-screenshooter -f</command></action></keybind>
+    <keybind key="S-Print"><action name="Execute"><command>xfce4-screenshooter -r</command></action></keybind>
+  </keyboard>
+
+  <mouse>
+    <context name="Frame">
+      <mousebind button="A-Left" action="Press"><action name="Focus"/><action name="Raise"/></mousebind>
+      <mousebind button="A-Left" action="Drag"><action name="Move"/></mousebind>
+      <mousebind button="A-Right" action="Press"><action name="Focus"/><action name="Raise"/><action name="Resize"/></mousebind>
+      <mousebind button="A-Middle" action="Press"><action name="Lower"/><action name="FocusToBottom"/><action name="Unfocus"/></mousebind>
+      <mousebind button="A-Up" action="Click"><action name="DesktopPrevious"/></mousebind>
+      <mousebind button="A-Down" action="Click"><action name="DesktopNext"/></mousebind>
+    </context>
+    <context name="Titlebar">
+      <mousebind button="Left" action="Press"><action name="Focus"/><action name="Raise"/></mousebind>
+      <mousebind button="Left" action="Drag"><action name="Move"/></mousebind>
+      <mousebind button="Left" action="DoubleClick"><action name="ToggleMaximize"/></mousebind>
+      <mousebind button="Middle" action="Press"><action name="Lower"/><action name="FocusToBottom"/><action name="Unfocus"/></mousebind>
+      <mousebind button="Right" action="Press"><action name="Focus"/><action name="Raise"/><action name="ShowMenu"><menu>client-menu</menu></action></mousebind>
+    </context>
+    <context name="Desktop">
+      <mousebind button="Left" action="Press"><action name="Focus"/><action name="Unfocus"/></mousebind>
+      <mousebind button="Right" action="Press"><action name="ShowMenu"><menu>root-menu</menu></action></mousebind>
+      <mousebind button="Middle" action="Press"><action name="ShowMenu"><menu>client-list-menu</menu></action></mousebind>
+      <mousebind button="Up" action="Click"><action name="DesktopPrevious"/></mousebind>
+      <mousebind button="Down" action="Click"><action name="DesktopNext"/></mousebind>
+    </context>
+  </mouse>
+
+  <menu>
+    <file>menu.xml</file>
+    <hideDelay>200</hideDelay>
+    <middle>no</middle>
+    <submenuShowDelay>100</submenuShowDelay>
+    <submenuHideDelay>400</submenuHideDelay>
+    <applicationIcons>yes</applicationIcons>
+  </menu>
+
+  <applications>
+    <application class="*">
+      <focus>yes</focus>
+    </application>
+    <application class="Pavucontrol"><floating>yes</floating></application>
+    <application class="Blueman-manager"><floating>yes</floating></application>
+    <application class="Nm-connection-editor"><floating>yes</floating></application>
+    <application class="Zenity"><floating>yes</floating></application>
+    <application class="Rofi"><floating>yes</floating></application>
+  </applications>
+
+</openbox_config>

@@ -1,0 +1,89 @@
+#!/bin/bash
+# ============================================
+# OSLin Shell - Custom Desktop Session
+# Starts: Openbox + Polybar + Picom + Wallpaper + Notifications
+# This is our custom desktop environment (not XFCE, not LXQt)
+# ============================================
+
+# Source OSLin helpers
+. /etc/oslin/oslin-common 2>/dev/null || true
+
+# ─── Set environment ───
+export XDG_SESSION_TYPE=x11
+export XDG_CURRENT_DESKTOP=OSLin
+export DESKTOP_SESSION=oslin
+export GTK_THEME=WhiteSur-Light
+export QT_QPA_PLATFORMTHEME=gtk2
+export ICON_THEME=WhiteSur
+
+# ─── Run first-login setup (if needed) ───
+if [ ! -f "$HOME/.config/oslin/.first-login-done" ]; then
+    /usr/local/bin/oslin-first-login 2>/dev/null || true
+fi
+
+# ─── Start picom compositor (blur, transparency, animations) ───
+if command -v picom >/dev/null 2>&1; then
+    # Kill any existing picom
+    killall picom 2>/dev/null
+    sleep 0.5
+    # Start picom with OSLin config
+    picom --config /etc/oslin/shell/picom.conf --daemon 2>/dev/null &
+    sleep 1
+fi
+
+# ─── Set wallpaper ───
+if [ -f /usr/share/wallpapers/oslin/wallpaper-default.png ]; then
+    if command -v nitrogen >/dev/null 2>&1; then
+        nitrogen --set-auto /usr/share/wallpapers/oslin/wallpaper-default.png 2>/dev/null &
+    elif command -v feh >/dev/null 2>&1; then
+        feh --bg-fill /usr/share/wallpapers/oslin/wallpaper-default.png 2>/dev/null &
+    fi
+fi
+
+# ─── Start notification daemon (dunst) ───
+if command -v dunst >/dev/null 2>&1; then
+    killall dunst 2>/dev/null
+    dunst 2>/dev/null &
+fi
+
+# ─── Start polkit (for GUI sudo prompts) ───
+if [ -x /usr/libexec/polkit-gnome-authentication-agent-1 ]; then
+    /usr/libexec/polkit-gnome-authentication-agent-1 2>/dev/null &
+fi
+
+# ─── Start Network Manager applet ───
+if command -v nm-applet >/dev/null 2>&1; then
+    nm-applet --indicator 2>/dev/null &
+fi
+
+# ─── Start Bluetooth applet ───
+if command -v blueman-applet >/dev/null 2>&1; then
+    blueman-applet 2>/dev/null &
+fi
+
+# ─── Start Polybar (custom status bar) ───
+if command -v polybar >/dev/null 2>&1; then
+    killall polybar 2>/dev/null
+    sleep 0.5
+    # Launch the bar
+    polybar -r oslin_main 2>/dev/null &
+fi
+
+# ─── Welcome notification ───
+if command -v notify-send >/dev/null 2>&1; then
+    sleep 2
+    notify-send -u normal -i oslin-logo \
+        "Welcome to OSLin" \
+        "Press Super+Space to launch apps
+Press Super+T for Terminal
+Press Super+D for Files
+Press Super+B for Browser" 2>/dev/null || true
+fi
+
+# ─── Start Openbox (window manager — this blocks until logout) ───
+if command -v openbox >/dev/null 2>&1; then
+    exec openbox-session
+else
+    # Fallback: start a minimal X session with xterm
+    exec xterm
+fi
