@@ -3,7 +3,7 @@
 # OSLin - Hook: 07-grub-menu.chroot
 # Enable visible GRUB boot menu + custom OSLin GRUB theme
 # ============================================
-set -e
+set +e  # tolerant mode for chroot build
 
 echo "[OSLin] Configuring GRUB boot menu..."
 

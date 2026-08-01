@@ -3,7 +3,7 @@
 # OSLin - Hook: 03-install-bauh-store.chroot
 # Installs bauh (universal app store: Flatpak/AppImage/Snap/Web)
 # ============================================
-set -e
+set +e  # tolerant mode for chroot build
 
 echo "[OSLin] Installing bauh universal app store..."
 

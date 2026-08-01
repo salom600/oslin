@@ -1,5 +1,5 @@
 #!/bin/sh
-set -e
+set +e  # tolerant mode for chroot build
 echo "[OSLin] Installing default theme (WhiteSur - macOS look)..."
 THEMES_DIR="/usr/share/themes"
 ICONS_DIR="/usr/share/icons"

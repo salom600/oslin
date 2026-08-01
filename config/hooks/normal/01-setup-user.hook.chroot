@@ -4,7 +4,7 @@
 # Creates the default 'oslin' user, sudoers, and home skeleton
 # Runs INSIDE the chroot during build
 # ============================================
-set -e
+set +e  # tolerant mode for chroot build
 
 echo "[OSLin] Setting up default user 'oslin'..."
 

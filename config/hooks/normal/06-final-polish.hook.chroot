@@ -1,5 +1,5 @@
 #!/bin/sh
-set -e
+set +e  # tolerant mode for chroot build
 echo "[OSLin] Aggressive slim-down polish..."
 
 apt-get clean

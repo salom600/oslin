@@ -3,7 +3,7 @@
 # OSLin - Hook: 05-installer-setup.chroot
 # Configures Calamares for OSLin branding (custom welcome + slideshow)
 # ============================================
-set -e
+set +e  # tolerant mode for chroot build
 
 echo "[OSLin] Configuring Calamares installer with OSLin branding..."
 

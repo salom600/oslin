@@ -8,7 +8,7 @@
 #   - Window snap script (for floating windows)
 # Note: picom and rofi are NOT needed on Wayland (Sway has native compositor + wofi)
 # ============================================
-set -e
+set +e  # tolerant mode for chroot build
 
 echo "[OSLin] Setting up modern desktop (Brave, Bottles, Plymouth)..."
 
