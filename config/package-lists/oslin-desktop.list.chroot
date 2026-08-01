@@ -23,7 +23,6 @@ lxqt-themes
 
 # ─── Openbox (window manager for LXQt) ───
 openbox
-openbox-themes
 obconf-qt
 
 # ─── PCManFM-Qt (file manager) ───
@@ -32,7 +31,6 @@ libfm-qt-dev
 
 # ─── QTerminal (terminal emulator) ───
 qterminal
-qtermwidget
 
 # ─── FeatherPad (text editor) ───
 featherpad
