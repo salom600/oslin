@@ -85,12 +85,7 @@ jobs:
             "config/hooks/normal/06-final-polish.hook.chroot"
             "config/hooks/normal/07-grub-menu.hook.chroot"
             "config/hooks/normal/08-modern-desktop.hook.chroot"
-            "config/hooks/normal/09-sway-desktop.hook.chroot"
-            "config/includes.chroot/etc/oslin/sway/config"
-            "config/includes.chroot/etc/oslin/waybar/config"
-            "config/includes.chroot/etc/oslin/waybar/style.css"
-            "config/includes.chroot/etc/oslin/wofi/config"
-            "config/includes.chroot/etc/oslin/wofi/style.css"
+            "config/hooks/normal/09-lxqt-desktop.hook.chroot"
           )
           for f in "${REQUIRED[@]}"; do
             if [ ! -f "$f" ]; then

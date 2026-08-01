@@ -1,61 +1,52 @@
 #!/bin/bash
 # ============================================
-# OSLin - First Login Setup (Sway/Wayland version)
+# OSLin - First Login Setup (LXQt/X11 version)
 # Runs on login to ensure configs are applied
 # ============================================
 set -u
 
-# Wait for the session to be ready
-sleep 3
+sleep 2
 
-# Only run as regular user (not root)
 if [ "$(id -u)" -eq 0 ]; then
     exit 0
 fi
 
 CONFIG_DIR="$HOME/.config"
 
-# ---------- 1. Ensure Sway config exists ----------
-if [ ! -f "$CONFIG_DIR/sway/config" ]; then
-    echo "[OSLin] Installing Sway config for user..."
-    mkdir -p "$CONFIG_DIR/sway"
-    [ -f /etc/sway/config ] && cp /etc/sway/config "$CONFIG_DIR/sway/config"
+# ---------- 1. Ensure LXQt config exists ----------
+if [ ! -d "$CONFIG_DIR/lxqt" ]; then
+    echo "[OSLin] Installing LXQt config..."
+    mkdir -p "$CONFIG_DIR/lxqt"
+    [ -d /etc/skel/.config/lxqt ] && cp -r /etc/skel/.config/lxqt/* "$CONFIG_DIR/lxqt/"
 fi
 
-# ---------- 2. Ensure Waybar config exists ----------
-if [ ! -f "$CONFIG_DIR/waybar/config" ]; then
-    echo "[OSLin] Installing Waybar config..."
-    mkdir -p "$CONFIG_DIR/waybar"
-    [ -f /etc/xdg/waybar/config ] && cp /etc/xdg/waybar/config "$CONFIG_DIR/waybar/config"
-    [ -f /etc/xdg/waybar/style.css ] && cp /etc/xdg/waybar/style.css "$CONFIG_DIR/waybar/style.css"
+# ---------- 2. Ensure Openbox config exists ----------
+if [ ! -f "$CONFIG_DIR/openbox/lxqt-rc.xml" ]; then
+    echo "[OSLin] Installing Openbox config..."
+    mkdir -p "$CONFIG_DIR/openbox"
+    [ -f /etc/skel/.config/openbox/lxqt-rc.xml ] && cp /etc/skel/.config/openbox/lxqt-rc.xml "$CONFIG_DIR/openbox/"
 fi
 
-# ---------- 3. Ensure Wofi config exists ----------
-if [ ! -f "$CONFIG_DIR/wofi/config" ]; then
-    echo "[OSLin] Installing Wofi config..."
-    mkdir -p "$CONFIG_DIR/wofi"
-    [ -f /etc/xdg/wofi/config ] && cp /etc/xdg/wofi/config "$CONFIG_DIR/wofi/config"
-    [ -f /etc/xdg/wofi/style.css ] && cp /etc/xdg/wofi/style.css "$CONFIG_DIR/wofi/style.css"
+# ---------- 3. Ensure autostart entries exist ----------
+if [ ! -d "$CONFIG_DIR/autostart" ]; then
+    mkdir -p "$CONFIG_DIR/autostart"
+    [ -d /etc/skel/.config/autostart ] && cp /etc/skel/.config/autostart/* "$CONFIG_DIR/autostart/"
 fi
 
-# ---------- 4. Ensure GTK theme is set (for XWayland apps) ----------
-mkdir -p "$CONFIG_DIR/gtk-3.0"
+# ---------- 4. Ensure GTK config ----------
 if [ ! -f "$CONFIG_DIR/gtk-3.0/settings.ini" ]; then
-    cat > "$CONFIG_DIR/gtk-3.0/settings.ini" <<'EOF'
-[Settings]
-gtk-theme-name=WhiteSur-Light
-gtk-icon-theme-name=WhiteSur
-gtk-font-name=Noto Sans 11
-gtk-cursor-theme-name=WhiteSur-cursors
-gtk-application-prefer-dark-theme=0
-gtk-enable-animations=1
-EOF
+    mkdir -p "$CONFIG_DIR/gtk-3.0"
+    [ -f /etc/skel/.config/gtk-3.0/settings.ini ] && cp /etc/skel/.config/gtk-3.0/settings.ini "$CONFIG_DIR/gtk-3.0/"
 fi
 
-mkdir -p "$CONFIG_DIR/gtk-4.0"
-[ ! -f "$CONFIG_DIR/gtk-4.0/settings.ini" ] && cp "$CONFIG_DIR/gtk-3.0/settings.ini" "$CONFIG_DIR/gtk-4.0/settings.ini"
+# ---------- 5. Set wallpaper ----------
+if [ -f /usr/share/wallpapers/oslin/wallpaper-default.png ]; then
+    if command -v pcmanfm-qt >/dev/null 2>&1; then
+        pcmanfm-qt --set-wallpaper=/usr/share/wallpapers/oslin/wallpaper-default.png --wallpaper-mode=fill 2>/dev/null || true
+    fi
+fi
 
-# ---------- 5. Mark first-login as done ----------
+# ---------- 6. Mark done ----------
 mkdir -p "$CONFIG_DIR/oslin"
 date -u +"%Y-%m-%dT%H:%M:%SZ" > "$CONFIG_DIR/oslin/.first-login-done"
 

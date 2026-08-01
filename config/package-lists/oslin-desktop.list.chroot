@@ -1,51 +1,81 @@
 # ============================================
-# OSLin - Desktop Environment (SWAY Wayland - modern, lightweight, animated)
-# Replaces XFCE entirely. ~250MB total, ~150-200MB RAM idle.
+# OSLin - Desktop Environment (LXQt - lightweight, works on ALL hardware)
+# Replaces Sway (which failed on unknown GPUs) and XFCE
+# ~300MB total, ~250MB RAM idle, X11 (universal compatibility)
 # ============================================
 
-# ─── Sway: Wayland compositor (i3-compatible, tiling + floating) ───
-sway
-sway-backgrounds
-swaylock
-swayidle
-sway-notification-center
-# SwayFX fork features (blur, rounded corners, animations) come from swayfx package
-# On Debian Bookworm, standard sway + our config gives the modern look
+# ─── LXQt desktop (lightweight Qt-based DE) ───
+lxqt
+lxqt-core
+lxqt-admin
+lxqt-config
+lxqt-globalkeys
+lxqt-notificationd
+lxqt-openssh-askpass
+lxqt-panel
+lxqt-policykit
+lxqt-powermanagement
+lxqt-qtplugin
+lxqt-runner
+lxqt-session
+lxqt-sudo
+lxqt-themes
 
-# ─── Waybar: modern, customizable status bar (replaces XFCE panel) ───
-waybar
-# Fonts for waybar (icons)
-fonts-font-awesome
+# ─── Openbox (window manager for LXQt) ───
+openbox
+openbox-themes
+obconf-qt
 
-# ─── Wofi: Wayland app launcher (replaces rofi/whiskermenu) ───
-wofi
+# ─── PCManFM-Qt (file manager) ───
+pcmanfm-qt
+libfm-qt-dev
 
-# ─── Wayland utilities ───
-wl-clipboard
-slurp
-grim
-mako-notifier
-kanshi
-wdisplays
+# ─── QTerminal (terminal emulator) ───
+qterminal
+qtermwidget
 
-# ─── XWayland (for running X11 apps like Bottles/Wine) ───
-xwayland
+# ─── FeatherPad (text editor) ───
+featherpad
 
-# ─── Polkit (for GUI privilege escalation) ───
-policykit-1-gnome
+# ─── Screenshot tool ───
+screengrab
 
-# ─── Display manager (LightDM works with Wayland via sway session) ───
+# ─── Archiver ───
+file-roller
+p7zip-full
+
+# ─── Display manager ───
 lightdm
 lightdm-gtk-greeter
 
-# ─── Wallpapers / appearance ───
-swaybg
+# ─── X server (universal — works on ALL hardware) ───
+xserver-xorg
+xserver-xorg-video-all
+xserver-xorg-video-amdgpu
+xserver-xorg-video-ati
+xserver-xorg-video-intel
+xserver-xorg-video-nouveau
+xserver-xorg-video-vesa
+xserver-xorg-video-fbdev
+xserver-xorg-video-qxl
+xserver-xorg-video-vmware
+x11-xserver-utils
+xauth
+xinit
+
+# ─── Mesa GL (hardware accel, works without proprietary drivers) ───
+mesa-va-drivers
+mesa-vulkan-drivers
+libgl1-mesa-dri
+libglx-mesa0
+libgl1
+libegl1
+libegl-mesa0
 
 # ─── Audio ───
 pulseaudio
 pavucontrol
 alsa-utils
-pulseaudio-utils
 
 # ─── Network ───
 network-manager
@@ -56,10 +86,12 @@ wpasupplicant
 bluez
 blueman
 
-# ─── Themes (GTK still used by file manager etc.) ───
+# ─── Themes ───
 gtk2-engines-murrine
 gtk2-engines-pixbuf
 papirus-icon-theme
+qt5-style-plugins
+adwaita-qt
 
 # ─── Fonts ───
 fonts-noto-core
@@ -70,35 +102,14 @@ fonts-liberation2
 fonts-kacst
 fonts-hosny-amiri
 
-# ─── File manager + terminal + text editor ───
-thunar
-thunar-archive-plugin
-thunar-volman
-tumbler
-xfce4-terminal
-mousepad
-ristretto
-file-roller
-p7zip-full
-
 # ─── GUI dialogs ───
 zenity
-
-# ─── Mesa GL (hardware accel for Wayland) ───
-mesa-va-drivers
-mesa-vulkan-drivers
-libgl1-mesa-dri
-libglx-mesa0
-libgl1
-libegl1
-libegl-mesa0
-vulkan-tools
 
 # ─── Notifications ───
 libnotify-bin
 notify-osd
 
-# ─── Image tools (SVG→PNG) ───
+# ─── Image tools ───
 librsvg2-bin
 imagemagick
 
@@ -107,5 +118,6 @@ plymouth
 plymouth-themes
 plymouth-x11
 
-# ─── Window snap helper (still useful for floating windows) ───
+# ─── Window snap helper ───
 wmctrl
+xdotool
