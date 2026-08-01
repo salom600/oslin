@@ -85,12 +85,11 @@ jobs:
             "config/hooks/normal/06-final-polish.hook.chroot"
             "config/hooks/normal/07-grub-menu.hook.chroot"
             "config/hooks/normal/08-modern-desktop.hook.chroot"
-            "config/hooks/normal/09-oslin-shell.hook.chroot"
-            "config/includes.chroot/etc/oslin/shell/openbox/rc.xml"
-            "config/includes.chroot/etc/oslin/shell/polybar/config.ini"
-            "config/includes.chroot/etc/oslin/shell/picom.conf"
-            "config/includes.chroot/etc/oslin/shell/rofi/oslin.rasi"
-            "config/includes.chroot/usr/local/bin/oslin-shell-session"
+            "config/hooks/normal/09-desktop-setup.hook.chroot"
+            "config/includes.chroot/etc/oslin/tint2rc"
+            "config/includes.chroot/etc/oslin/picom.conf"
+            "config/includes.chroot/etc/oslin/openbox-rc.xml"
+            "config/includes.chroot/usr/local/bin/oslin-session"
           )
           for f in "${REQUIRED[@]}"; do
             if [ ! -f "$f" ]; then

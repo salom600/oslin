@@ -1,0 +1,119 @@
+#!/bin/sh
+# ============================================
+# OSLin - Hook: 09-desktop-setup.chroot
+# Installs the custom OSLin desktop (Openbox + tint2 + picom + feh)
+# BULLETPROOF — every component has fallbacks
+# ============================================
+# NO set -e — this hook must never fail
+
+echo "[OSLin] Setting up custom desktop..."
+
+# ---------- 1. Install Openbox config ----------
+mkdir -p /etc/xdg/openbox
+cp /etc/oslin/openbox-rc.xml /etc/xdg/openbox/rc.xml 2>/dev/null || true
+
+# ---------- 2. Install tint2 config ----------
+mkdir -p /etc/xdg/tint2
+cp /etc/oslin/tint2rc /etc/xdg/tint2/tint2rc 2>/dev/null || true
+
+# ---------- 3. Install picom config ----------
+# Already at /etc/oslin/picom.conf
+
+# ---------- 4. Create session entry ----------
+mkdir -p /usr/share/xsessions
+cat > /usr/share/xsessions/oslin.desktop <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=OSLin
+Comment=OSLin modern desktop
+Exec=/usr/local/bin/oslin-session
+TryExec=/usr/local/bin/oslin-session
+Icon=oslin-logo
+DesktopNames=OSLin;
+EOF
+
+# Remove old session entries
+rm -f /usr/share/xsessions/xfce.desktop 2>/dev/null || true
+rm -f /usr/share/xsessions/lxqt.desktop 2>/dev/null || true
+rm -f /usr/share/xsessions/sway.desktop /usr/share/wayland-sessions/sway.desktop 2>/dev/null || true
+
+# ---------- 5. Set OSLin as default in LightDM ----------
+if [ -f /etc/lightdm/lightdm.conf ]; then
+    sed -i 's/^user-session=.*/user-session=oslin/' /etc/lightdm/lightdm.conf 2>/dev/null || true
+    sed -i 's/^autologin-session=.*/autologin-session=oslin/' /etc/lightdm/lightdm.conf 2>/dev/null || true
+fi
+
+# ---------- 6. Copy configs to user skeleton ----------
+SKEL="/etc/skel/.config"
+mkdir -p "$SKEL/openbox" "$SKEL/tint2" "$SKEL/picom" "$SKEL/gtk-3.0"
+
+cp /etc/oslin/openbox-rc.xml "$SKEL/openbox/rc.xml" 2>/dev/null || true
+cp /etc/oslin/tint2rc "$SKEL/tint2/tint2rc" 2>/dev/null || true
+cp /etc/oslin/picom.conf "$SKEL/picom/picom.conf" 2>/dev/null || true
+
+# GTK theme
+cat > "$SKEL/gtk-3.0/settings.ini" <<'EOF'
+[Settings]
+gtk-theme-name=WhiteSur-Light
+gtk-icon-theme-name=WhiteSur
+gtk-font-name=Noto Sans 11
+gtk-cursor-theme-name=WhiteSur-cursors
+gtk-application-prefer-dark-theme=0
+gtk-enable-animations=1
+EOF
+
+# ---------- 7. Copy to live user ----------
+if [ -d /home/oslin ]; then
+    USR="/home/oslin/.config"
+    mkdir -p "$USR/openbox" "$USR/tint2" "$USR/picom" "$USR/gtk-3.0"
+
+    cp /etc/oslin/openbox-rc.xml "$USR/openbox/rc.xml" 2>/dev/null || true
+    cp /etc/oslin/tint2rc "$USR/tint2/tint2rc" 2>/dev/null || true
+    cp /etc/oslin/picom.conf "$USR/picom/picom.conf" 2>/dev/null || true
+    cp "$SKEL/gtk-3.0/settings.ini" "$USR/gtk-3.0/settings.ini" 2>/dev/null || true
+
+    chown -R oslin:oslin /home/oslin/.config 2>/dev/null || true
+fi
+
+# ---------- 8. Ensure oslin user is in required groups ----------
+if id oslin >/dev/null 2>&1; then
+    for g in video audio input plugdev netdev bluetooth; do
+        getent group "$g" >/dev/null 2>&1 && usermod -aG "$g" oslin 2>/dev/null || true
+    done
+fi
+
+# ---------- 9. Create Pictures dir ----------
+mkdir -p /etc/skel/Pictures 2>/dev/null || true
+if [ -d /home/oslin ]; then
+    mkdir -p /home/oslin/Pictures 2>/dev/null || true
+    chown oslin:oslin /home/oslin/Pictures 2>/dev/null || true
+fi
+
+# ---------- 10. Create Openbox menu ----------
+mkdir -p /etc/xdg/openbox
+cat > /etc/xdg/openbox/menu.xml <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<openbox_menu xmlns="http://openbox.org/3.4/menu">
+  <menu id="root-menu" label="OSLin">
+    <item label="File Manager"><action name="Execute"><command>thunar</command></action></item>
+    <item label="Terminal"><action name="Execute"><command>xfce4-terminal</command></action></item>
+    <item label="Browser"><action name="Execute"><command>brave-browser</command></action></item>
+    <item label="App Store"><action name="Execute"><command>oslin-store</command></action></item>
+    <separator/>
+    <menu id="settings" label="Settings">
+      <item label="Control Center"><action name="Execute"><command>oslin-control-center</command></action></item>
+      <item label="Hardware Info"><action name="Execute"><command>oslin-hw-info</command></action></item>
+      <item label="Install Drivers"><action name="Execute"><command>xfce4-terminal -e "sudo /usr/local/bin/oslin-hw-detect"</command></action></item>
+    </menu>
+    <separator/>
+    <item label="Lock Screen"><action name="Execute"><command>xset dpms force off</command></action></item>
+    <item label="Restart"><action name="Execute"><command>reboot</command></action></item>
+    <item label="Shut Down"><action name="Execute"><command>poweroff</command></action></item>
+    <item label="Log Out"><action name="Exit"/></item>
+  </menu>
+</openbox_menu>
+EOF
+
+echo "[OSLin] Desktop setup complete (Openbox + tint2 + picom + feh)."
+echo "[OSLin] Session: /usr/local/bin/oslin-session"
+exit 0

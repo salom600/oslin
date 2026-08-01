@@ -1,48 +1,17 @@
 #!/bin/bash
-# ============================================
-# OSLin - First Login Setup (Custom Shell version)
-# ============================================
-set -u
+# OSLin First Login Setup - simplified, never fails
+set +e
 
 sleep 2
 
-if [ "$(id -u)" -eq 0 ]; then
-    exit 0
-fi
-
 CONFIG_DIR="$HOME/.config"
 
-# ---------- 1. Ensure Openbox config ----------
-if [ ! -f "$CONFIG_DIR/openbox/rc.xml" ]; then
-    mkdir -p "$CONFIG_DIR/openbox"
-    [ -f /etc/oslin/shell/openbox/rc.xml ] && cp /etc/oslin/shell/openbox/rc.xml "$CONFIG_DIR/openbox/"
-fi
+# Ensure configs exist (copy from system if missing)
+[ ! -f "$CONFIG_DIR/openbox/rc.xml" ] && mkdir -p "$CONFIG_DIR/openbox" && cp /etc/xdg/openbox/rc.xml "$CONFIG_DIR/openbox/" 2>/dev/null
+[ ! -f "$CONFIG_DIR/tint2/tint2rc" ] && mkdir -p "$CONFIG_DIR/tint2" && cp /etc/xdg/tint2/tint2rc "$CONFIG_DIR/tint2/" 2>/dev/null
+[ ! -f "$CONFIG_DIR/picom/picom.conf" ] && mkdir -p "$CONFIG_DIR/picom" && cp /etc/oslin/picom.conf "$CONFIG_DIR/picom/" 2>/dev/null
+[ ! -f "$CONFIG_DIR/gtk-3.0/settings.ini" ] && mkdir -p "$CONFIG_DIR/gtk-3.0" && cp /etc/skel/.config/gtk-3.0/settings.ini "$CONFIG_DIR/gtk-3.0/" 2>/dev/null
 
-# ---------- 2. Ensure Polybar config ----------
-if [ ! -f "$CONFIG_DIR/polybar/config.ini" ]; then
-    mkdir -p "$CONFIG_DIR/polybar"
-    [ -f /etc/oslin/shell/polybar/config.ini ] && cp /etc/oslin/shell/polybar/config.ini "$CONFIG_DIR/polybar/"
-fi
-
-# ---------- 3. Ensure Picom config ----------
-if [ ! -f "$CONFIG_DIR/picom/picom.conf" ]; then
-    mkdir -p "$CONFIG_DIR/picom"
-    [ -f /etc/oslin/shell/picom.conf ] && cp /etc/oslin/shell/picom.conf "$CONFIG_DIR/picom/"
-fi
-
-# ---------- 4. Ensure Rofi config ----------
-if [ ! -f "$CONFIG_DIR/rofi/oslin.rasi" ]; then
-    mkdir -p "$CONFIG_DIR/rofi"
-    [ -f /etc/oslin/shell/rofi/oslin.rasi ] && cp /etc/oslin/shell/rofi/oslin.rasi "$CONFIG_DIR/rofi/"
-fi
-
-# ---------- 5. Ensure GTK config ----------
-if [ ! -f "$CONFIG_DIR/gtk-3.0/settings.ini" ]; then
-    mkdir -p "$CONFIG_DIR/gtk-3.0"
-    [ -f /etc/skel/.config/gtk-3.0/settings.ini ] && cp /etc/skel/.config/gtk-3.0/settings.ini "$CONFIG_DIR/gtk-3.0/"
-fi
-
-# ---------- 6. Mark done ----------
 mkdir -p "$CONFIG_DIR/oslin"
 date -u +"%Y-%m-%dT%H:%M:%SZ" > "$CONFIG_DIR/oslin/.first-login-done"
 

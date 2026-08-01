@@ -1,0 +1,120 @@
+#!/bin/bash
+# ============================================
+# OSLin Desktop Session — BULLETPROOF version
+# This script NEVER fails. Even if picom/tint2/feh all crash,
+# openbox will still start and show a usable desktop.
+# ============================================
+
+# Log everything for debugging
+exec > /tmp/oslin-session.log 2>&1
+
+echo "=== OSLin Session Start: $(date) ==="
+echo "User: $(whoami)"
+echo "DISPLAY: ${DISPLAY:-unset}"
+echo "XDG_SESSION_TYPE: ${XDG_SESSION_TYPE:-unset}"
+
+# ─── Environment ───
+export XDG_SESSION_TYPE=x11
+export XDG_CURRENT_DESKTOP=OSLin
+export DESKTOP_SESSION=oslin
+export GTK_THEME=WhiteSur-Light
+export QT_QPA_PLATFORMTHEME=gtk2
+export ICON_THEME=WhiteSur
+
+# ─── Run first-login setup (non-fatal) ───
+if [ ! -f "$HOME/.config/oslin/.first-login-done" ]; then
+    /usr/local/bin/oslin-first-login 2>/dev/null || true
+fi
+
+# ─── 1. Set wallpaper with feh (non-fatal) ───
+echo "[OSLin] Setting wallpaper..."
+if command -v feh >/dev/null 2>&1; then
+    if [ -f /usr/share/wallpapers/oslin/wallpaper-default.png ]; then
+        feh --bg-fill /usr/share/wallpapers/oslin/wallpaper-default.png 2>/dev/null || true
+    elif [ -f /usr/share/wallpapers/oslin-wallpaper.svg ]; then
+        # Convert SVG to PNG first
+        if command -v rsvg-convert >/dev/null 2>&1; then
+            rsvg-convert -w 1920 -h 1080 /usr/share/wallpapers/oslin-wallpaper.svg \
+                -o /tmp/oslin-wallpaper.png 2>/dev/null || true
+            feh --bg-fill /tmp/oslin-wallpaper.png 2>/dev/null || true
+        fi
+    fi
+fi
+
+# ─── 2. Start picom compositor (non-fatal — desktop works without it) ───
+echo "[OSLin] Starting picom compositor..."
+if command -v picom >/dev/null 2>&1; then
+    # Kill any existing picom
+    killall picom 2>/dev/null || true
+    sleep 0.5
+    # Start picom with config (or default if no config)
+    if [ -f /etc/oslin/picom.conf ]; then
+        picom --config /etc/oslin/picom.conf --daemon 2>/dev/null &
+    else
+        picom --daemon 2>/dev/null &
+    fi
+    sleep 1
+    # Check if picom is running
+    if pgrep -x picom >/dev/null 2>&1; then
+        echo "[OSLin] Picom started successfully."
+    else
+        echo "[OSLin] WARNING: Picom failed to start — continuing without compositor."
+    fi
+fi
+
+# ─── 3. Start tint2 panel (non-fatal) ───
+echo "[OSLin] Starting tint2 panel..."
+if command -v tint2 >/dev/null 2>&1; then
+    killall tint2 2>/dev/null || true
+    sleep 0.5
+    if [ -f /etc/oslin/tint2rc ]; then
+        tint2 -c /etc/oslin/tint2rc 2>/dev/null &
+    else
+        tint2 2>/dev/null &
+    fi
+    sleep 1
+    if pgrep -x tint2 >/dev/null 2>&1; then
+        echo "[OSLin] Tint2 started successfully."
+    else
+        echo "[OSLin] WARNING: Tint2 failed to start — continuing without panel."
+    fi
+fi
+
+# ─── 4. Start notification daemon (non-fatal) ───
+echo "[OSLin] Starting dunst notifications..."
+if command -v dunst >/dev/null 2>&1; then
+    killall dunst 2>/dev/null || true
+    dunst 2>/dev/null &
+fi
+
+# ─── 5. Start polkit (non-fatal) ───
+if [ -x /usr/libexec/polkit-gnome-authentication-agent-1 ]; then
+    /usr/libexec/polkit-gnome-authentication-agent-1 2>/dev/null &
+fi
+
+# ─── 6. Start Network Manager applet (non-fatal) ───
+if command -v nm-applet >/dev/null 2>&1; then
+    nm-applet --indicator 2>/dev/null &
+fi
+
+# ─── 7. Start Bluetooth applet (non-fatal) ───
+if command -v blueman-applet >/dev/null 2>&1; then
+    blueman-applet 2>/dev/null &
+fi
+
+# ─── 8. Welcome notification (non-fatal) ───
+if command -v notify-send >/dev/null 2>&1; then
+    sleep 2
+    notify-send -u normal "Welcome to OSLin" \
+        "Press Super+D for Files | Super+T for Terminal | Super+B for Browser" 2>/dev/null || true
+fi
+
+# ─── 9. Start Openbox (THIS IS THE DESKTOP — must always run) ───
+echo "[OSLin] Starting Openbox window manager..."
+if command -v openbox >/dev/null 2>&1; then
+    echo "[OSLin] Desktop is ready. Starting Openbox session..."
+    exec openbox-session
+else
+    echo "[OSLin] FATAL: Openbox not found! Starting xterm as fallback."
+    exec xterm -fullscreen
+fi
