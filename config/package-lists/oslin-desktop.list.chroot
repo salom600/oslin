@@ -11,7 +11,6 @@ swayidle
 sway-notification-center
 # SwayFX fork features (blur, rounded corners, animations) come from swayfx package
 # On Debian Bookworm, standard sway + our config gives the modern look
-sway-config
 
 # ─── Waybar: modern, customizable status bar (replaces XFCE panel) ───
 waybar
@@ -23,10 +22,8 @@ wofi
 
 # ─── Wayland utilities ───
 wl-clipboard
-cliphist
 slurp
 grim
-swappy
 mako-notifier
 kanshi
 wdisplays
@@ -35,7 +32,6 @@ wdisplays
 xwayland
 
 # ─── Polkit (for GUI privilege escalation) ───
-polkit-1
 policykit-1-gnome
 
 # ─── Display manager (LightDM works with Wayland via sway session) ───
@@ -44,7 +40,6 @@ lightdm-gtk-greeter
 
 # ─── Wallpapers / appearance ───
 swaybg
-wallutils
 
 # ─── Audio ───
 pulseaudio
