@@ -1,0 +1,225 @@
+# ============================================
+# OSLin Sway Configuration
+# Modern, polished, macOS/Win11-inspired Wayland desktop
+# ============================================
+
+# ─── Variables ───
+set $mod Mod4
+set $terminal xfce4-terminal
+set $menu wofi --show drun -i -W 600 -H 400
+set $browser brave-browser
+set $files thunar
+set $editor mousepad
+
+# Wallpaper
+output * bg /usr/share/wallpapers/oslin/wallpaper-default.png fill
+
+# ─── Appearance (macOS/Win11 vibe) ───
+# Gaps between windows (modern look)
+gaps inner 8
+gaps outer 4
+smart_gaps on
+smart_borders on
+
+# Window borders
+default_border pixel 2
+default_floating_border pixel 2
+# No title bars (clean look, like macOS)
+titlebar_border_thickness 0
+titlebar_padding 0
+
+# Colors (OSLin blue palette, matches WhiteSur theme)
+client.focused          #0078D4 #1E3A5F #FFFFFF #00B4D8 #0078D4
+client.focused_inactive #1E3A5F #0A2540 #B0C4DE #1E3A5F #1E3A5F
+client.unfocused        #1E3A5F #0A2540 #808080 #1E3A5F #1E3A5F
+client.urgent           #FF6B6B #FF6B6B #FFFFFF #FF6B6B #FF6B6B
+client.placeholder      #0A2540 #0A2540 #FFFFFF #0A2540 #0A2540
+
+# ─── Font ───
+font pango:Noto Sans 11
+
+# ─── Autostart ───
+# Waybar (status bar at bottom)
+exec_always waybar
+
+# Wallpaper
+exec swaybg -i /usr/share/wallpapers/oslin/wallpaper-default.png -m fill
+
+# Notification daemon
+exec mako
+
+# Polkit (for GUI sudo prompts)
+exec /usr/libexec/polkit-gnome-authentication-agent-1
+
+# Clipboard manager
+exec wl-paste -t text --watch cliphist store
+
+# Network Manager applet
+exec nm-applet --indicator
+
+# Bluetooth applet
+exec blueman-applet
+
+# OSLin first-login setup (applies theme, starts services)
+exec /usr/local/bin/oslin-first-login
+
+# ─── Input ───
+input type:keyboard {
+    xkb_layout us,ar
+    xkb_options grp:alt_shift_toggle
+}
+
+input type:touchpad {
+    tap enabled
+    natural_scroll enabled
+    dwt enabled
+}
+
+# ─── Output ───
+# Auto-detect displays, set resolution
+output eDP-1 resolution preferred
+output HDMI-A-1 resolution preferred
+
+# ─── Keybindings ───
+# Core
+bindsym $mod+Return exec $terminal
+bindsym $mod+d exec $menu
+bindsym $mod+Shift+q kill
+bindsym $mod+Shift+c reload
+bindsym $mod+Shift+e exec swaynag -t warning -m 'Exit OSLin?' -b 'Yes' 'swaymsg exit' -b 'No' 'swaymsg kill'
+
+# ─── Window snap (Win11-style) ───
+# Use sway's native tiling for snap:
+# Mod+Arrow = move window to that half
+bindsym $mod+Left move left
+bindsym $mod+Right move right
+bindsym $mod+Up move up
+bindsym $mod+Down move down
+
+# Snap to halves (Win11-style)
+bindsym $mod+Shift+Left move container to workspace current; split h; move left
+bindsym $mod+Shift+Right move container to workspace current; split h; move right
+
+# ─── Focus ───
+bindsym $mod+Left focus left
+bindsym $mod+Right focus right
+bindsym $mod+Up focus up
+bindsym $mod+Down focus down
+
+# ─── Workspaces ───
+set $ws1 "1: Web"
+set $ws2 "2: Files"
+set $ws3 "3: Terminal"
+set $ws4 "4: Code"
+set $ws5 "5: Games"
+set $ws6 "6: Media"
+set $ws7 "7: Settings"
+set $ws8 "8"
+set $ws9 "9"
+set $ws10 "10"
+
+bindsym $mod+1 workspace $ws1
+bindsym $mod+2 workspace $ws2
+bindsym $mod+3 workspace $ws3
+bindsym $mod+4 workspace $ws4
+bindsym $mod+5 workspace $ws5
+bindsym $mod+6 workspace $ws6
+bindsym $mod+7 workspace $ws7
+bindsym $mod+8 workspace $ws8
+bindsym $mod+9 workspace $ws9
+bindsym $mod+0 workspace $ws10
+
+bindsym $mod+Shift+1 move container to workspace $ws1
+bindsym $mod+Shift+2 move container to workspace $ws2
+bindsym $mod+Shift+3 move container to workspace $ws3
+bindsym $mod+Shift+4 move container to workspace $ws4
+bindsym $mod+Shift+5 move container to workspace $ws5
+bindsym $mod+Shift+6 move container to workspace $ws6
+bindsym $mod+Shift+7 move container to workspace $ws7
+bindsym $mod+Shift+8 move container to workspace $ws8
+bindsym $mod+Shift+9 move container to workspace $ws9
+bindsym $mod+Shift+0 move container to workspace $ws10
+
+# ─── Layout ───
+bindsym $mod+b splith
+bindsym $mod+v splitv
+bindsym $mod+f fullscreen toggle
+bindsym $mod+e layout toggle split
+bindsym $mod+s layout stacking
+bindsym $mod+w layout tabbed
+bindsym $mod+Shift+space floating toggle
+bindsym $mod+space focus mode_toggle
+bindsym $mod+a focus parent
+bindsym $mod+Shift+minus move scratchpad
+bindsym $mod+minus scratchpad show
+
+# ─── App shortcuts ───
+bindsym $mod+b exec $browser
+bindsym $mod+f exec $files
+bindsym $mod+t exec $terminal
+bindsym $mod+s exec oslin-store
+bindsym $mod+i exec oslin-control-center
+bindsym $mod+h exec oslin-hw-info
+bindsym $mod+l exec swaylock -c 0A2540 -i /usr/share/wallpapers/oslin/wallpaper-default.png
+
+# ─── Screenshots ───
+bindsym Print exec grim - | wl-copy
+bindsym Shift+Print exec slurp | grim -g - - | wl-copy
+bindsym Ctrl+Print exec grim ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png
+
+# ─── Media keys ───
+bindsym XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +5%
+bindsym XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -5%
+bindsym XF86AudioMute exec pactl set-sink-mute @DEFAULT_SINK@ toggle
+bindsym XF86AudioPlay exec playerctl play-pause
+bindsym XF86AudioNext exec playerctl next
+bindsym XF86AudioPrev exec playerctl previous
+bindsym XF86MonBrightnessUp exec brightnessctl s +5%
+bindsym XF86MonBrightnessDown exec brightnessctl s 5%-
+
+# ─── Resize mode ───
+mode "resize" {
+    bindsym Left resize shrink width 10px
+    bindsym Down resize grow height 10px
+    bindsym Up resize shrink height 10px
+    bindsym Right resize grow width 10px
+    bindsym Return mode "default"
+    bindsym Escape mode "default"
+}
+bindsym $mod+r mode "resize"
+
+# ─── Bar (waybar handles this, so we disable swaybar) ───
+bar {
+    swaybar_command waybar
+}
+
+# ─── Window rules ───
+# Float specific windows
+for_window [app_id="pavucontrol"] floating enable
+for_window [app_id="blueman-manager"] floating enable
+for_window [app_id="nm-connection-editor"] floating enable
+for_window [app_id="zenity"] floating enable
+for_window [app_id="wofi"] floating enable
+for_window [class="Bottles"] floating enable
+for_window [title="Picture in Picture"] floating enable, sticky enable
+
+# Assign apps to workspaces
+assign [app_id="brave-browser"] $ws1
+assign [class="Brave-browser"] $ws1
+assign [app_id="thunar"] $ws2
+assign [class="Thunar"] $ws2
+assign [app_id="xfce4-terminal"] $ws3
+assign [class="com.usebottles.bottles"] $ws5
+
+# ─── Idle ───
+exec swayidle -w \
+    timeout 300 'swaylock -c 0A2540 -i /usr/share/wallpapers/oslin/wallpaper-default.png' \
+    timeout 600 'swaymsg "output * dpms off"' \
+    resume 'swaymsg "output * dpms on"' \
+    before-sleep 'swaylock -c 0A2540 -i /usr/share/wallpapers/oslin/wallpaper-default.png'
+
+# ─── XWayland ───
+xwayland enable
+
+# ─── Include local overrides ───
+include /etc/sway/config.d/*

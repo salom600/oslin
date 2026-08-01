@@ -1,0 +1,163 @@
+// ============================================
+// OSLin Waybar Configuration
+// Modern bottom bar: workspaces + active window + tray + clock + language
+// ============================================
+
+{
+    "layer": "top",
+    "position": "bottom",
+    "height": 44,
+    "spacing": 6,
+    "margin-top": 0,
+    "margin-bottom": 0,
+    "margin-left": 0,
+    "margin-right": 0,
+    "gtk-theme": "WhiteSur-Light",
+    "icon-theme": "WhiteSur",
+
+    "modules-left": [
+        "sway/workspaces",
+        "sway/mode",
+        "sway/window"
+    ],
+
+    "modules-center": [
+        "clock"
+    ],
+
+    "modules-right": [
+        "keyboard-state",
+        "pulseaudio",
+        "network",
+        "bluetooth",
+        "battery",
+        "backlight",
+        "tray",
+        "custom/power"
+    ],
+
+    // ─── Workspaces ───
+    "sway/workspaces": {
+        "disable-scroll": false,
+        "all-outputs": true,
+        "warp-on-hover": true,
+        "format": "{icon}",
+        "format-icons": {
+            "1: Web": "🌐",
+            "2: Files": "📁",
+            "3: Terminal": "⌨️",
+            "4: Code": "💻",
+            "5: Games": "🎮",
+            "6: Media": "🎬",
+            "7: Settings": "⚙️",
+            "8": "8",
+            "9": "9",
+            "10": "10",
+            "urgent": "🔴",
+            "default": "•"
+        }
+    },
+
+    // ─── Active window title ───
+    "sway/window": {
+        "format": "{}",
+        "max-length": 50,
+        "rewrite": {
+            "(.*) - Brave Browser": "🌐 $1",
+            "(.*) - Thunar": "📁 $1",
+            "(.*) - Terminal": "⌨️ $1"
+        }
+    },
+
+    // ─── Mode indicator (resize, etc.) ───
+    "sway/mode": {
+        "format": "<span style=\"italic\">{}</span>"
+    },
+
+    // ─── Clock (center) ───
+    "clock": {
+        "format": "{:%H:%M}",
+        "format-alt": "{:%A, %B %d, %Y}",
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+        "on-click": "zenity --calendar --title=Calendar 2>/dev/null"
+    },
+
+    // ─── Keyboard state (CapsLock, NumLock) ───
+    "keyboard-state": {
+        "numlock": true,
+        "capslock": true,
+        "format": "{name} {icon}",
+        "format-icons": {
+            "locked": "🔒",
+            "unlocked": "🔓"
+        }
+    },
+
+    // ─── Audio ───
+    "pulseaudio": {
+        "format": "{icon} {volume}%",
+        "format-muted": "🔇",
+        "format-icons": {
+            "headphone": "🎧",
+            "hands-free": "📱",
+            "headset": "🎧",
+            "phone": "📱",
+            "portable": "📱",
+            "car": "🚗",
+            "default": ["🔊", "🔉", "🔈"]
+        },
+        "on-click": "pavucontrol",
+        "on-scroll-up": "pactl set-sink-volume @DEFAULT_SINK@ +5%",
+        "on-scroll-down": "pactl set-sink-volume @DEFAULT_SINK@ -5%"
+    },
+
+    // ─── Network ───
+    "network": {
+        "format-wifi": "📶 {essid}",
+        "format-ethernet": "🌐 {ipaddr}",
+        "format-disconnected": "⚠️ Disconnected",
+        "format-linked": "🌐 {ifname} (No IP)",
+        "tooltip-format": "{ifname} via {gwaddr}",
+        "on-click": "nm-connection-editor"
+    },
+
+    // ─── Bluetooth ───
+    "bluetooth": {
+        "format": "🔵",
+        "format-connected": "🔵 {device_alias}",
+        "format-disabled": "⚪",
+        "on-click": "blueman-manager"
+    },
+
+    // ─── Battery ───
+    "battery": {
+        "states": {
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "{icon} {capacity}%",
+        "format-charging": "⚡ {capacity}%",
+        "format-plugged": "🔌 {capacity}%",
+        "format-icons": ["🔋", "🪫", "🪫", "🪫", "🔋", "🔋", "🔋", "🔋", "🔋", "🔋"]
+    },
+
+    // ─── Brightness ───
+    "backlight": {
+        "format": "☀️ {percent}%",
+        "on-scroll-up": "brightnessctl s +5%",
+        "on-scroll-down": "brightnessctl s 5%-"
+    },
+
+    // ─── System tray ───
+    "tray": {
+        "spacing": 10,
+        "icon-size": 20
+    },
+
+    // ─── Power button ───
+    "custom/power": {
+        "format": "⏻",
+        "on-click": "wofi --show dmenu -p 'Power:' -W 200 -H 200 <<< 'Lock\nLogout\nReboot\nShutdown'",
+        "tooltip": false
+    }
+}

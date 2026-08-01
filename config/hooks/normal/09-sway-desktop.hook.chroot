@@ -1,0 +1,125 @@
+#!/bin/sh
+# ============================================
+# OSLin - Hook: 09-sway-desktop.chroot
+# Installs Sway (Wayland compositor) as the desktop environment
+# Replaces XFCE entirely
+# ============================================
+set -e
+
+echo "[OSLin] Setting up Sway Wayland desktop..."
+
+# ---------- 1. Copy Sway config to system location ----------
+echo "[OSLin] Installing Sway configuration..."
+mkdir -p /etc/sway
+cp /etc/oslin/sway/config /etc/sway/config
+chmod 644 /etc/sway/config
+
+mkdir -p /etc/sway/config.d
+
+# ---------- 2. Copy Waybar config to system ----------
+mkdir -p /etc/xdg/waybar
+cp /etc/oslin/waybar/config /etc/xdg/waybar/config
+cp /etc/oslin/waybar/style.css /etc/xdg/waybar/style.css
+
+# ---------- 3. Copy Wofi config to system ----------
+mkdir -p /etc/xdg/wofi
+cp /etc/oslin/wofi/config /etc/xdg/wofi/config
+cp /etc/oslin/wofi/style.css /etc/xdg/wofi/style.css
+
+# ---------- 4. Copy configs to user skeleton ----------
+echo "[OSLin] Copying configs to user skeleton..."
+mkdir -p /etc/skel/.config/sway
+cp /etc/sway/config /etc/skel/.config/sway/config
+
+mkdir -p /etc/skel/.config/waybar
+cp /etc/oslin/waybar/config /etc/skel/.config/waybar/config
+cp /etc/oslin/waybar/style.css /etc/skel/.config/waybar/style.css
+
+mkdir -p /etc/skel/.config/wofi
+cp /etc/oslin/wofi/config /etc/skel/.config/wofi/config
+cp /etc/oslin/wofi/style.css /etc/skel/.config/wofi/style.css
+
+# ---------- 5. Copy to live user home ----------
+if [ -d /home/oslin ]; then
+    mkdir -p /home/oslin/.config/sway
+    cp /etc/sway/config /home/oslin/.config/sway/config
+
+    mkdir -p /home/oslin/.config/waybar
+    cp /etc/oslin/waybar/config /home/oslin/.config/waybar/config
+    cp /etc/oslin/waybar/style.css /home/oslin/.config/waybar/style.css
+
+    mkdir -p /home/oslin/.config/wofi
+    cp /etc/oslin/wofi/config /home/oslin/.config/wofi/config
+    cp /etc/oslin/wofi/style.css /home/oslin/.config/wofi/style.css
+
+    chown -R oslin:oslin /home/oslin/.config
+fi
+
+# ---------- 6. Create sway session entry for LightDM ----------
+echo "[OSLin] Creating Sway session entry..."
+mkdir -p /usr/share/wayland-sessions
+cat > /usr/share/wayland-sessions/sway.desktop <<'EOF'
+[Desktop Entry]
+Name=OSLin (Sway)
+Comment=OSLin modern Wayland desktop
+Exec=sway
+Type=Application
+DesktopNames=OSLin;Sway;Wayland
+EOF
+
+mkdir -p /usr/share/xsessions
+cat > /usr/share/xsessions/sway.desktop <<'EOF'
+[Desktop Entry]
+Name=OSLin (Sway)
+Comment=OSLin modern Wayland desktop
+Exec=sway
+Type=Application
+DesktopNames=OSLin;Sway;Wayland
+EOF
+
+# ---------- 7. Set Sway as default session ----------
+if [ -f /etc/lightdm/lightdm.conf ]; then
+    sed -i 's/^user-session=.*/user-session=sway/' /etc/lightdm/lightdm.conf 2>/dev/null || true
+    sed -i 's/^autologin-session=.*/autologin-session=sway/' /etc/lightdm/lightdm.conf 2>/dev/null || true
+fi
+
+# ---------- 8. Remove old XFCE session entries ----------
+echo "[OSLin] Removing XFCE session entries..."
+rm -f /usr/share/xsessions/xfce.desktop 2>/dev/null || true
+rm -f /usr/share/wayland-sessions/xfce.desktop 2>/dev/null || true
+
+# ---------- 9. Ensure oslin user is in video/input/render/seat groups ----------
+if id oslin >/dev/null 2>&1; then
+    usermod -aG video oslin 2>/dev/null || true
+    usermod -aG input oslin 2>/dev/null || true
+    usermod -aG render oslin 2>/dev/null || true
+    usermod -aG seat oslin 2>/dev/null || true
+fi
+
+# ---------- 10. Create Pictures dir for screenshots ----------
+mkdir -p /etc/skel/Pictures
+if [ -d /home/oslin ]; then
+    mkdir -p /home/oslin/Pictures
+    chown oslin:oslin /home/oslin/Pictures
+fi
+
+# ---------- 11. Configure environment for Wayland ----------
+cat > /etc/profile.d/oslin-wayland.sh <<'EOF'
+# OSLin Wayland environment
+export XDG_SESSION_TYPE=wayland
+export XDG_CURRENT_DESKTOP=sway
+export QT_QPA_PLATFORM=wayland
+export QT_WAYLAND_DISABLE_WINDOWDECORATION=1
+export GDK_BACKEND=wayland
+export CLUTTER_BACKEND=wayland
+export SDL_VIDEODRIVER=wayland
+export MOZ_ENABLE_WAYLAND=1
+export _JAVA_AWT_WM_NONREPARENTING=1
+EOF
+chmod 644 /etc/profile.d/oslin-wayland.sh
+
+# ---------- 12. Enable seatd ----------
+systemctl enable seatd.service 2>/dev/null || true
+
+echo "[OSLin] Sway desktop setup complete."
+exit 0

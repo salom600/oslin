@@ -81,13 +81,16 @@ jobs:
             "config/hooks/normal/01-setup-user.hook.chroot"
             "config/hooks/normal/02-install-themes.hook.chroot"
             "config/hooks/normal/03-install-bauh-store.hook.chroot"
-            "config/hooks/normal/04-xfce-customization.hook.chroot"
             "config/hooks/normal/05-installer-setup.hook.chroot"
             "config/hooks/normal/06-final-polish.hook.chroot"
             "config/hooks/normal/07-grub-menu.hook.chroot"
             "config/hooks/normal/08-modern-desktop.hook.chroot"
-            "config/includes.chroot/etc/oslin/picom.conf"
-            "config/includes.chroot/etc/oslin/rofi.rasi"
+            "config/hooks/normal/09-sway-desktop.hook.chroot"
+            "config/includes.chroot/etc/oslin/sway/config"
+            "config/includes.chroot/etc/oslin/waybar/config"
+            "config/includes.chroot/etc/oslin/waybar/style.css"
+            "config/includes.chroot/etc/oslin/wofi/config"
+            "config/includes.chroot/etc/oslin/wofi/style.css"
           )
           for f in "${REQUIRED[@]}"; do
             if [ ! -f "$f" ]; then

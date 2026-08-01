@@ -1,0 +1,198 @@
+/* ============================================
+   OSLin Waybar Style - macOS/Win11 inspired
+   Transparent, modern, frosted-glass feel
+   ============================================ */
+
+* {
+    border: none;
+    border-radius: 0;
+    font-family: "Noto Sans", "Font Awesome 6 Free", sans-serif;
+    font-size: 14px;
+    min-height: 0;
+}
+
+window#waybar {
+    background-color: rgba(10, 37, 64, 0.85);
+    color: #FFFFFF;
+    transition-property: background-color;
+    transition-duration: 0.5s;
+    border-top: 1px solid rgba(0, 180, 216, 0.2);
+}
+
+window#waybar.hidden {
+    opacity: 0.2;
+}
+
+/* ─── Workspaces ─── */
+#workspaces button {
+    padding: 0 10px;
+    background-color: transparent;
+    color: #B0C4DE;
+    border-radius: 12px;
+    margin: 4px 2px;
+    transition: all 0.3s ease;
+}
+
+#workspaces button:hover {
+    background: rgba(0, 120, 212, 0.3);
+    color: #FFFFFF;
+}
+
+#workspaces button.focused {
+    background-color: #0078D4;
+    color: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(0, 120, 212, 0.5);
+}
+
+#workspaces button.urgent {
+    background-color: #FF6B6B;
+    color: #FFFFFF;
+}
+
+/* ─── Active window ─── */
+#window {
+    color: #FFFFFF;
+    padding: 0 12px;
+    font-weight: 500;
+}
+
+/* ─── Mode ─── */
+#mode {
+    color: #FF6B6B;
+    font-weight: bold;
+    padding: 0 8px;
+}
+
+/* ─── Clock (center) ─── */
+#clock {
+    background-color: rgba(0, 120, 212, 0.4);
+    color: #FFFFFF;
+    padding: 0 16px;
+    border-radius: 16px;
+    font-weight: 600;
+    font-size: 15px;
+    margin: 4px 0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* ─── Keyboard state ─── */
+#keyboard-state {
+    background: rgba(30, 58, 95, 0.6);
+    color: #FFFFFF;
+    padding: 0 8px;
+    border-radius: 12px;
+    margin: 4px 2px;
+}
+
+/* ─── Pulseaudio ─── */
+#pulseaudio {
+    background-color: rgba(30, 58, 95, 0.6);
+    color: #FFFFFF;
+    padding: 0 10px;
+    border-radius: 12px;
+    margin: 4px 2px;
+}
+
+#pulseaudio.muted {
+    background-color: rgba(255, 107, 107, 0.4);
+    color: #FFFFFF;
+}
+
+/* ─── Network ─── */
+#network {
+    background-color: rgba(30, 58, 95, 0.6);
+    color: #FFFFFF;
+    padding: 0 10px;
+    border-radius: 12px;
+    margin: 4px 2px;
+}
+
+#network.disconnected {
+    background-color: rgba(255, 107, 107, 0.4);
+}
+
+/* ─── Bluetooth ─── */
+#bluetooth {
+    background-color: rgba(30, 58, 95, 0.6);
+    color: #FFFFFF;
+    padding: 0 10px;
+    border-radius: 12px;
+    margin: 4px 2px;
+}
+
+#bluetooth.disabled {
+    color: #808080;
+}
+
+/* ─── Battery ─── */
+#battery {
+    background-color: rgba(30, 58, 95, 0.6);
+    color: #FFFFFF;
+    padding: 0 10px;
+    border-radius: 12px;
+    margin: 4px 2px;
+}
+
+#battery.charging {
+    background-color: rgba(0, 200, 83, 0.4);
+    color: #FFFFFF;
+}
+
+#battery.warning {
+    background-color: rgba(255, 193, 7, 0.4);
+}
+
+#battery.critical {
+    background-color: rgba(255, 107, 107, 0.6);
+    animation-name: blink;
+    animation-duration: 0.5s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+/* ─── Backlight ─── */
+#backlight {
+    background-color: rgba(30, 58, 95, 0.6);
+    color: #FFFFFF;
+    padding: 0 10px;
+    border-radius: 12px;
+    margin: 4px 2px;
+}
+
+/* ─── Tray ─── */
+#tray {
+    background-color: rgba(30, 58, 95, 0.4);
+    padding: 0 8px;
+    border-radius: 12px;
+    margin: 4px 2px;
+}
+
+#tray > .passive {
+    -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+    -gtk-icon-effect: highlight;
+}
+
+/* ─── Power button ─── */
+#custom-power {
+    background-color: rgba(255, 107, 107, 0.4);
+    color: #FFFFFF;
+    padding: 0 12px;
+    border-radius: 12px;
+    margin: 4px 2px;
+    font-size: 16px;
+}
+
+#custom-power:hover {
+    background-color: rgba(255, 107, 107, 0.7);
+}
+
+/* ─── Animations ─── */
+@keyframes blink {
+    to {
+        background-color: rgba(255, 107, 107, 0.9);
+    }
+}

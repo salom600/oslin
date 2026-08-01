@@ -1,0 +1,22 @@
+# ============================================
+# OSLin Wofi Configuration (Wayland app launcher)
+# Spotlight-style with frosted-glass theme
+# ============================================
+
+show=drun
+prompt=Search apps...
+filter_rate=50
+allow_markup=true
+no_actions=true
+halign=fill
+orientation=vertical
+content_halign=fill
+hide_scroll=true
+width=600
+height=400
+lines=10
+cache_file=/tmp/wofi-cache
+term=xfce4-terminal
+normal_window=false
+key_expand=Tab
+key_exit=Escape

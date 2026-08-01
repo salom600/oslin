@@ -1,49 +1,95 @@
 # ============================================
-# OSLin - Desktop Environment (SUPERCHARGED - ~400MB)
-# XFCE + picom + rofi = modern, animated, unique feel
+# OSLin - Desktop Environment (SWAY Wayland - modern, lightweight, animated)
+# Replaces XFCE entirely. ~250MB total, ~150-200MB RAM idle.
 # ============================================
 
-# --- XFCE core (kept — stable, lightweight base) ---
-xfce4
-xfce4-terminal
-xfce4-settings
-xfce4-session
-xfce4-panel
-xfce4-power-manager
-xfce4-notifyd
-xfce4-screenshooter
-xfce4-taskmanager
-xfce4-whiskermenu-plugin
-xfce4-cpugraph-plugin
-xfce4-pulseaudio-plugin
-xfce4-netload-plugin
-xfce4-systemload-plugin
-xfce4-places-plugin
-xfce4-genmon-plugin
-xfwm4
+# ─── Sway: Wayland compositor (i3-compatible, tiling + floating) ───
+sway
+sway-backgrounds
+swaylock
+swayidle
+sway-notification-center
+# SwayFX fork features (blur, rounded corners, animations) come from swayfx package
+# On Debian Bookworm, standard sway + our config gives the modern look
+sway-config
+
+# ─── Waybar: modern, customizable status bar (replaces XFCE panel) ───
+waybar
+# Fonts for waybar (icons)
+fonts-font-awesome
+
+# ─── Wofi: Wayland app launcher (replaces rofi/whiskermenu) ───
+wofi
+
+# ─── Wayland utilities ───
+wl-clipboard
+cliphist
+slurp
+grim
+swappy
+mako-notifier
+kanshi
+wdisplays
+
+# ─── XWayland (for running X11 apps like Bottles/Wine) ───
+xwayland
+
+# ─── Polkit (for GUI privilege escalation) ───
+polkit-1
+policykit-1-gnome
+
+# ─── Display manager (LightDM works with Wayland via sway session) ───
+lightdm
+lightdm-gtk-greeter
+
+# ─── Wallpapers / appearance ───
+swaybg
+wallutils
+
+# ─── Audio ───
+pulseaudio
+pavucontrol
+alsa-utils
+pulseaudio-utils
+
+# ─── Network ───
+network-manager
+network-manager-gnome
+wpasupplicant
+
+# ─── Bluetooth ───
+bluez
+blueman
+
+# ─── Themes (GTK still used by file manager etc.) ───
+gtk2-engines-murrine
+gtk2-engines-pixbuf
+papirus-icon-theme
+
+# ─── Fonts ───
+fonts-noto-core
+fonts-noto-ui-core
+fonts-noto-mono
+fonts-dejavu-core
+fonts-liberation2
+fonts-kacst
+fonts-hosny-amiri
+
+# ─── File manager + terminal + text editor ───
 thunar
 thunar-archive-plugin
 thunar-volman
 tumbler
+xfce4-terminal
 mousepad
 ristretto
+file-roller
+p7zip-full
 
-# --- Display manager ---
-lightdm
-lightdm-gtk-greeter
+# ─── GUI dialogs ───
+zenity
 
-# --- X server ---
-xserver-xorg
-xserver-xorg-video-all
-xserver-xorg-video-amdgpu
-xserver-xorg-video-ati
-xserver-xorg-video-intel
-xserver-xorg-video-nouveau
-xserver-xorg-video-vesa
-x11-xserver-utils
-xauth
-
-# --- Mesa open-source GL stack (desktop works offline) ---
+# ─── Mesa GL (hardware accel for Wayland) ───
 mesa-va-drivers
 mesa-vulkan-drivers
 libgl1-mesa-dri
@@ -53,69 +99,18 @@ libegl1
 libegl-mesa0
 vulkan-tools
 
-# --- 🎨 PICOM compositor (the magic — blur, transparency, animations) ---
-picom
-# Custom picom fork with rounded corners + blur (jonaburg fork is widely used)
-# We'll use the Debian picom + custom config for blur/transparency
-
-# --- 🚀 ROFI (Spotlight-style modern launcher) ---
-rofi
-# Custom OSLin rofi theme will be installed via hook
-
-# --- Audio ---
-pulseaudio
-pavucontrol
-alsa-utils
-
-# --- Network ---
-network-manager
-network-manager-gnome
-wpasupplicant
-
-# --- Bluetooth ---
-bluez
-blueman
-
-# --- Themes / engines ---
-gtk2-engines-murrine
-gtk2-engines-pixbuf
-papirus-icon-theme
-
-# --- Fonts (multilingual) ---
-fonts-noto-core
-fonts-noto-ui-core
-fonts-noto-mono
-fonts-dejavu-core
-fonts-liberation2
-fonts-kacst
-fonts-hosny-amiri
-
-# --- 🌐 Brave browser (replaces Firefox) ---
-# Installed via hook from Brave's official apt repo
-# (Brave is not in Debian repos — we add the signing key + repo at build time)
-
-# --- File archiver ---
-file-roller
-p7zip-full
-
-# --- GUI dialogs ---
-zenity
-
-# --- Notification daemon ---
+# ─── Notifications ───
 libnotify-bin
 notify-osd
 
-# --- Image tools (SVG→PNG conversion) ---
+# ─── Image tools (SVG→PNG) ───
 librsvg2-bin
 imagemagick
 
-# --- 🎮 Plymouth boot splash (custom OSLin theme) ---
+# ─── Plymouth boot splash ───
 plymouth
 plymouth-themes
 plymouth-x11
 
-# --- 🪟 Window snap tiling helper (Win11-style snap) ---
-# wmctrl + xdotool used by oslin-snap script
+# ─── Window snap helper (still useful for floating windows) ───
 wmctrl
-xdotool
-x11-utils
