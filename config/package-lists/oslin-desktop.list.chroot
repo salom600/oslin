@@ -10,7 +10,6 @@ obconf
 
 # ─── tint2: taskbar (simple, reliable, always starts) ───
 tint2
-tint2conf
 
 # ─── Picom: compositor (blur, transparency, rounded corners) ───
 picom
