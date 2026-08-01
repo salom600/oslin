@@ -4,7 +4,7 @@
 # Installs the custom OSLin Shell desktop
 # (Openbox + Polybar + Picom + Rofi — NOT a pre-built DE)
 # ============================================
-set -e
+set +e  # tolerant mode — do not fail on errors during chroot build
 
 echo "[OSLin] Setting up custom OSLin Shell desktop..."
 
