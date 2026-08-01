@@ -52,7 +52,7 @@ exec mako
 exec /usr/libexec/polkit-gnome-authentication-agent-1
 
 # Clipboard manager
-exec wl-paste -t text --watch cliphist store
+# Clipboard manager (cliphist not available, using wl-clipboard only)
 
 # Network Manager applet
 exec nm-applet --indicator
@@ -163,9 +163,9 @@ bindsym $mod+h exec oslin-hw-info
 bindsym $mod+l exec swaylock -c 0A2540 -i /usr/share/wallpapers/oslin/wallpaper-default.png
 
 # ─── Screenshots ───
-bindsym Print exec grim - | wl-copy
-bindsym Shift+Print exec slurp | grim -g - - | wl-copy
-bindsym Ctrl+Print exec grim ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png
+bindsym Print exec grim -t image/png - | wl-copy
+bindsym Shift+Print exec slurp -d | grim -g - - | wl-copy
+bindsym Ctrl+Print exec grim $HOME/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png
 
 # ─── Media keys ───
 bindsym XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +5%
